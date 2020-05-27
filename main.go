@@ -16,6 +16,12 @@ func main() {
 	configuracion := configuracion.GetInstance()
 
 	dbPublic := conexionBD.ObtenerDB("public")
+	defer func() {
+		if r := recover(); r != nil {
+			conexionBD.CerrarDB(dbPublic)
+		}
+	}()
+
 	err, actualizoMicro := apiclientconexionbd.AutomigrateTablasPublicas(dbPublic)
 	if err != nil {
 		fmt.Println("Error Public Automigrate: ", err)
@@ -25,6 +31,12 @@ func main() {
 
 	dbSecurity := conexionBD.ObtenerDB("security")
 	txSecurity := dbSecurity.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			txSecurity.Rollback()
+			conexionBD.CerrarDB(dbSecurity)
+		}
+	}()
 
 	err, actualizoSecurity := apiclientconexionbd.AutomigrateTablaSecurity(txSecurity)
 	if err != nil {
