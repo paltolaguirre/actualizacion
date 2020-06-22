@@ -39,5 +39,9 @@ func AutomigrateNovedadTablasPrivadas(db *gorm.DB) error {
 	if versionNovedadDB < 4 {
 		db.Exec("alter table novedad alter column importe drop not null;")
 	}
+
+	if versionNovedadDB < 5 {
+		db.Exec("update novedad set fecha = fecha - interval '21 hours';")
+	}
 	return err
 }
