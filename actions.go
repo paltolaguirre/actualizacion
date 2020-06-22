@@ -3,9 +3,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/xubiosueldos/actualizacion/automigrate"
 	"github.com/xubiosueldos/conexionBD"
 	"github.com/xubiosueldos/conexionBD/Autenticacion/structAutenticacion"
-	"github.com/xubiosueldos/conexionBD/apiclientconexionbd"
 	"github.com/xubiosueldos/framework"
 	"net/http"
 )
@@ -29,7 +29,7 @@ func Actualizar(writer http.ResponseWriter, request *http.Request) {
 	tenant := security.Tenant
 	db := conexionBD.ObtenerDB(tenant)
 	defer conexionBD.CerrarDB(db)
-	err = apiclientconexionbd.AutomigrateTablasPrivadas(db)
+	err = automigrate.AutomigrateTablasPrivadas(db)
 
 	dbSecurity := conexionBD.ObtenerDB("security")
 	defer conexionBD.CerrarDB(dbSecurity)
