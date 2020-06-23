@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"github.com/jinzhu/gorm"
+	"github.com/xubiosueldos/actualizacion/automigrate"
 	"github.com/xubiosueldos/conexionBD"
 	"github.com/xubiosueldos/conexionBD/Autenticacion/structAutenticacion"
-	"github.com/xubiosueldos/conexionBD/apiclientconexionbd"
 	"github.com/xubiosueldos/framework/configuracion"
 	"log"
 	"net/http"
@@ -22,7 +22,7 @@ func main() {
 		}
 	}()
 
-	err, actualizoMicro := apiclientconexionbd.AutomigrateTablasPublicas(dbPublic)
+	err, actualizoMicro := automigrate.AutomigrateTablasPublicas(dbPublic)
 	if err != nil {
 		fmt.Println("Error Public Automigrate: ", err)
 		return
@@ -38,7 +38,7 @@ func main() {
 		}
 	}()
 
-	err, actualizoSecurity := apiclientconexionbd.AutomigrateTablaSecurity(txSecurity)
+	err, actualizoSecurity := automigrate.AutomigrateTablaSecurity(txSecurity)
 	if err != nil {
 		txSecurity.Rollback()
 		fmt.Println("Error Security Automigrate: ", err)
