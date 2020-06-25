@@ -9,10 +9,18 @@ import (
 	"github.com/xubiosueldos/framework/configuracion"
 	"log"
 	"net/http"
+	"os"
 )
 
 func main() {
+
 	var err error
+
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(dir)
 	configuracion := configuracion.GetInstance()
 
 	dbPublic := conexionBD.ObtenerDB("public")
@@ -54,7 +62,7 @@ func main() {
 
 	router := newRouter()
 
-	fmt.Printf("Iniciando servidor escuchando puerto %s", configuracion.Puertomicroservicioactualizacion)
+	fmt.Printf("Iniciando servidor escuchando puerto %s\n", configuracion.Puertomicroservicioactualizacion)
 	server := http.ListenAndServe(":"+configuracion.Puertomicroservicioactualizacion, router)
 
 	log.Fatal(server)

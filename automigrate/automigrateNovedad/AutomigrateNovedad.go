@@ -45,13 +45,13 @@ func RunVersion(microservicio string, tipo string, version string, db *gorm.DB) 
 
 	c, ioErr := ioutil.ReadFile(path)
 	if ioErr != nil {
-		fmt.Printf("No existe el archivo o directorio, o no se puede acceder: %s", path)
+		fmt.Printf("No existe el archivo o directorio, o no se puede acceder: %s\n", path)
 		return nil
 	}
 	sql := string(c)
 	err := db.Exec(sql).Error
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error al ejecutar el script %s/%s-%s: %s", microservicio, tipo, version, err.Error()))
+		return errors.New(fmt.Sprintf("Error al ejecutar el script %s/%s-%s: %s\n", microservicio, tipo, version, err.Error()))
 	}
 	return nil
 }
