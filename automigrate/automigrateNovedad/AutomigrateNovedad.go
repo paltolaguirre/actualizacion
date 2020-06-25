@@ -1,9 +1,13 @@
 package automigrateNovedad
 
 import (
+	"errors"
+	"fmt"
 	"github.com/jinzhu/gorm"
 	"github.com/xubiosueldos/actualizacion/automigrate/versiondbmicroservicio"
 	"github.com/xubiosueldos/conexionBD/Novedad/structNovedad"
+	"io/ioutil"
+	"strconv"
 )
 
 type MicroservicioNovedad struct{
@@ -30,18 +34,34 @@ func AutomigrateNovedadTablasPrivadas(db *gorm.DB) error {
 	//para actualizar tablas...agrega columnas e indices, pero no elimina
 	err := db.AutoMigrate(&structNovedad.Novedad{}).Error
 	db.Model(&structNovedad.Novedad{}).AddForeignKey("conceptoid", "concepto(id)", "RESTRICT", "RESTRICT")
-	versionNovedadDB := ObtenerVersionNovedadDB(db)
-	if versionNovedadDB < 2 {
-		// err = db.Exec("alter table novedad alter column cantidad type numeric(19,4);").Error
-		db.Exec("alter table novedad alter column cantidad type numeric(19,4);")
-	}
 
-	if versionNovedadDB < 4 {
-		db.Exec("alter table novedad alter column importe drop not null;")
-	}
+	err = actualizarVersionesScript(ObtenerVersionNovedadDB(db), ObtenerVersionNovedadConfiguracion(), "novedad", "private", db)
 
-	if versionNovedadDB < 5 {
-		db.Exec("update novedad set fecha = fecha - interval '21 hours';")
-	}
 	return err
+}
+
+func RunVersion(microservicio string, tipo string, version string, db *gorm.DB) error{
+	path := "resources/" + microservicio + "/" + tipo + "-" + version + ".sql"
+
+	c, ioErr := ioutil.ReadFile(path)
+	if ioErr != nil {
+		fmt.Printf("No existe el archivo o directorio, o no se puede acceder: %s", path)
+		return nil
+	}
+	sql := string(c)
+	err := db.Exec(sql).Error
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error al ejecutar el script %s/%s-%s: %s", microservicio, tipo, version, err.Error()))
+	}
+	return nil
+}
+
+func actualizarVersionesScript(versionDB int, versionConfig int, microservicio string, tipo string, db *gorm.DB) error{
+	for versionDB++ ; versionDB <= versionConfig; versionDB++ {
+		err := RunVersion(microservicio, tipo, strconv.Itoa(versionDB), db)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

@@ -9,6 +9,7 @@ ADD main /
 ADD configuracion.json /
 # Se copia certificado de maquina host
 #COPY ca-certificates.crt /etc/ssl/certs/
+ADD resources /
 
 # Se habilita puerto
 EXPOSE 80

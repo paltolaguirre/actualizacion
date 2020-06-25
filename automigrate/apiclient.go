@@ -85,3 +85,4 @@ func AutomigrateTablasPrivadas(db *gorm.DB) error {
 func ForzarActualizacionPrivados() {
 
 }
+

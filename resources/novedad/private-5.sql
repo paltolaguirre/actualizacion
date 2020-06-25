@@ -1,0 +1,1 @@
+update novedad set fecha = fecha - interval '21 hours';
