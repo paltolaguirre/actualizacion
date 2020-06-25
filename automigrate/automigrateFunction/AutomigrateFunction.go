@@ -242,10 +242,10 @@ func AutomigrateFunctionTablasPublicas(db *gorm.DB) error {
 			db.Exec("INSERT INTO function(name, created_at, description, origin, type, scope, result, valueid) VALUES('ValorHora', current_timestamp, 'Variables Sueldo / HorasMensuales', 'primitive', 'generic', 'public', 'number', -50)")
 
 			db.Exec("INSERT INTO value(id, created_at, name, valuenumber, valuestring, valueboolean, valueinvokeid, arginvokeid) VALUES(-51,current_timestamp,'return',0,'',false,null,0)")
-			db.Exec("INSERT INTO function(name, created_at, description, origin, type, scope, result, valueid) VALUES('HoraExtra50', current_timestamp, 'Variable ValorHora * 1,5 * Cantidad (será el campo Cantidad Ingresado en una Novedad)', 'primitive', 'generic', 'public', 'number', -51)")
+			db.Exec("INSERT INTO function(name, created_at, description, origin, type, scope, result, valueid) VALUES('HoraExtra50', current_timestamp, 'Variable ValorHora * 1,5 * Cantidad (será el campo Cantidad Ingresado en una novedad)', 'primitive', 'generic', 'public', 'number', -51)")
 
 			db.Exec("INSERT INTO value(id, created_at, name, valuenumber, valuestring, valueboolean, valueinvokeid, arginvokeid) VALUES(-52,current_timestamp,'return',0,'',false,null,0)")
-			db.Exec("INSERT INTO function(name, created_at, description, origin, type, scope, result, valueid) VALUES('HoraExtra100', current_timestamp, 'Variable ValorHora * 2 * Cantidad (será el campo Cantidad Ingresado en una Novedad)', 'primitive', 'generic', 'public', 'number', -52)")
+			db.Exec("INSERT INTO function(name, created_at, description, origin, type, scope, result, valueid) VALUES('HoraExtra100', current_timestamp, 'Variable ValorHora * 2 * Cantidad (será el campo Cantidad Ingresado en una novedad)', 'primitive', 'generic', 'public', 'number', -52)")
 
 			db.Exec("INSERT INTO value(id, created_at, name, valuenumber, valuestring, valueboolean, valueinvokeid, arginvokeid) VALUES(-53,current_timestamp,'return',0,'',false,null,0)")
 			db.Exec("INSERT INTO function(name, created_at, description, origin, type, scope, result, valueid) VALUES('Sac', current_timestamp, 'Variable (MejorRemRemunerativaBaseSACSemestre / 2) * DiasSemTrabajados / 180', 'primitive', 'generic', 'public', 'number', -53)")
