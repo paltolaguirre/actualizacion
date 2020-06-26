@@ -1,8 +1,12 @@
 package versiondbmicroservicio
 
 import (
+	"errors"
+	"fmt"
 	"github.com/jinzhu/gorm"
 	"github.com/xubiosueldos/conexionBD/structGormModel"
+	"io/ioutil"
+	"strconv"
 )
 
 type Versiondbmicroservicio struct {
@@ -41,4 +45,30 @@ func ActualizarVersionMicroservicioDB(versionMicroservicioConfiguracion int, nom
 
 func ActualizarMicroservicio(versionMicroservicioConfiguracion int, versionMicroservicioDB int) bool {
 	return versionMicroservicioConfiguracion > versionMicroservicioDB
+}
+
+func RunVersion(microservicio string, tipo string, version string, db *gorm.DB) error{
+	path := "resources/" + microservicio + "/" + tipo + "-" + version + ".sql"
+
+	c, ioErr := ioutil.ReadFile(path)
+	if ioErr != nil {
+		fmt.Printf("No existe el archivo o directorio, o no se puede acceder: %s\n", path)
+		return nil
+	}
+	sql := string(c)
+	err := db.Exec(sql).Error
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error al ejecutar el script %s/%s-%s: %s\n", microservicio, tipo, version, err.Error()))
+	}
+	return nil
+}
+
+func ActualizarVersionesScript(versionDB int, versionConfig int, microservicio string, tipo string, db *gorm.DB) error{
+	for versionDB++ ; versionDB <= versionConfig; versionDB++ {
+		err := RunVersion(microservicio, tipo, strconv.Itoa(versionDB), db)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

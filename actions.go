@@ -29,7 +29,7 @@ func Actualizar(writer http.ResponseWriter, request *http.Request) {
 	tenant := security.Tenant
 	db := conexionBD.ObtenerDB(tenant)
 	defer conexionBD.CerrarDB(db)
-	err = automigrate.AutomigrateTablasPrivadas(db)
+	err= automigrate.AutomigrateTablasPrivadas(db)
 
 	dbSecurity := conexionBD.ObtenerDB("security")
 	defer conexionBD.CerrarDB(dbSecurity)

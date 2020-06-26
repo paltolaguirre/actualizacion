@@ -16,9 +16,13 @@ import (
 
 type Microservicio interface {
 	NecesitaActualizar(*gorm.DB) bool
-	AutomigrarPublic(*gorm.DB) error
-	AutomigrarPrivate(*gorm.DB) error
+	BeforeAutomigrarPublic(*gorm.DB) error
+	AfterAutomigrarPublic(*gorm.DB) error
+	BeforeAutomigrarPrivate(*gorm.DB) error
+	AfterAutomigrarPrivate(*gorm.DB) error
 	ActualizarVersion(*gorm.DB)
+	GetNombre() string
+	GetVersionConfiguracion() int
 }
 
 var automigratePublicArray = []Microservicio{&automigrateLegajo.MicroservicioLegajo{}, &automigrateConcepto.MicroservicioConcepto{}, &automigrateLiquidacion.MicroservicioLiquidacion{}, &automigrateSiradig.MicroservicioSiradig{}, &automigrateFunction.MicroservicioFunction{}, &automigrateNovedad.MicroservicioNovedad{}}
@@ -49,40 +53,61 @@ func AutomigrateTablasPublicas(db *gorm.DB) (error, bool) {
 
 	for _, microservicio := range automigratePublicArray {
 		if microservicio.NecesitaActualizar(db) {
-			err := microservicio.AutomigrarPublic(db)
+			err := microservicio.BeforeAutomigrarPublic(db)
 
 			if err != nil {
 				return err, false
-			} else {
-				actualizo = true
-				microservicio.ActualizarVersion(db)
 			}
+
+			err = versiondbmicroservicio.ActualizarVersionesScript(versiondbmicroservicio.UltimaVersion(microservicio.GetNombre(), db), microservicio.GetVersionConfiguracion(), microservicio.GetNombre(), "public", db)
+
+			if err != nil {
+				return err, false
+			}
+
+			err = microservicio.AfterAutomigrarPublic(db)
+
+			if err != nil {
+				return err, false
+			}
+
+			actualizo = true
+			microservicio.ActualizarVersion(db)
 		}
 	}
 
 	return nil, actualizo
 }
 
+
 func AutomigrateTablasPrivadas(db *gorm.DB) error {
 
 	versiondbmicroservicio.CrearTablaVersionDBMicroservicio(db)
 
-	for _, microservicio := range automigratePrivateArray {
+	for _, microservicio := range automigratePublicArray {
 		if microservicio.NecesitaActualizar(db) {
-			err := microservicio.AutomigrarPrivate(db)
+			err := microservicio.BeforeAutomigrarPrivate(db)
 
 			if err != nil {
 				return err
-			} else {
-				microservicio.ActualizarVersion(db)
 			}
+
+			err = versiondbmicroservicio.ActualizarVersionesScript(versiondbmicroservicio.UltimaVersion(microservicio.GetNombre(), db), microservicio.GetVersionConfiguracion(), microservicio.GetNombre(), "private", db)
+
+			if err != nil {
+				return err
+			}
+
+			err = microservicio.AfterAutomigrarPrivate(db)
+
+			if err != nil {
+				return err
+			}
+
+			microservicio.ActualizarVersion(db)
 		}
 	}
 
 	return nil
-}
-
-func ForzarActualizacionPrivados() {
-
 }
 

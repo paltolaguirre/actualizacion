@@ -4,30 +4,35 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/xubiosueldos/actualizacion/automigrate/versiondbmicroservicio"
 	"github.com/xubiosueldos/conexionBD/Legajo/structLegajo"
+	"github.com/xubiosueldos/framework/configuracion"
 )
 
 type MicroservicioLegajo struct{
+}
+
+func (*MicroservicioLegajo) GetNombre() string {
+	return "legajo"
+}
+
+func (*MicroservicioLegajo) GetVersionConfiguracion() int {
+	configuracion := configuracion.GetInstance()
+
+	return configuracion.Versionlegajo
 }
 
 func (*MicroservicioLegajo) NecesitaActualizar(db *gorm.DB) bool {
 	return versiondbmicroservicio.ActualizarMicroservicio(ObtenerVersionLegajoConfiguracion(), ObtenerVersionLegajoDB(db))
 }
 
-func (*MicroservicioLegajo) AutomigrarPublic(db *gorm.DB) error {
-	return AutomigrateLegajoTablasPublicas(db)
+func (*MicroservicioLegajo) BeforeAutomigrarPublic(db *gorm.DB) error {
+	err := db.AutoMigrate(&structLegajo.Pais{}, &structLegajo.Provincia{}, &structLegajo.Localidad{}, &structLegajo.Modalidadcontratacion{}, &structLegajo.Situacion{}, &structLegajo.Condicion{}, &structLegajo.Condicionsiniestrado{}, &structLegajo.Obrasocial{}, &structLegajo.Estadocivil{}).Error
+	return err
+}
+func (*MicroservicioLegajo) AfterAutomigrarPublic(db *gorm.DB) error {
+	return nil
 }
 
-func (*MicroservicioLegajo) AutomigrarPrivate(db *gorm.DB) error {
-	return AutomigrateLegajoTablasPrivadas(db)
-}
-
-func (*MicroservicioLegajo) ActualizarVersion(db *gorm.DB)  {
-	versiondbmicroservicio.ActualizarVersionMicroservicioDB(ObtenerVersionLegajoConfiguracion(), Legajo, db)
-}
-
-func AutomigrateLegajoTablasPrivadas(db *gorm.DB) error {
-
-	//para actualizar tablas...agrega columnas e indices, pero no elimina
+func (*MicroservicioLegajo) BeforeAutomigrarPrivate(db *gorm.DB) error {
 	err := db.AutoMigrate(&structLegajo.Conyuge{}, &structLegajo.Hijo{}, &structLegajo.Legajo{}).Error
 	if err == nil {
 		db.Model(&structLegajo.Hijo{}).AddForeignKey("legajoid", "legajo(id)", "CASCADE", "CASCADE")
@@ -36,8 +41,10 @@ func AutomigrateLegajoTablasPrivadas(db *gorm.DB) error {
 	return err
 }
 
-func AutomigrateLegajoTablasPublicas(db *gorm.DB) error {
-	//para actualizar tablas...agrega columnas e indices, pero no elimina
-	err := db.AutoMigrate(&structLegajo.Pais{}, &structLegajo.Provincia{}, &structLegajo.Localidad{}, &structLegajo.Modalidadcontratacion{}, &structLegajo.Situacion{}, &structLegajo.Condicion{}, &structLegajo.Condicionsiniestrado{}, &structLegajo.Obrasocial{}, &structLegajo.Estadocivil{}).Error
-	return err
+func (*MicroservicioLegajo) AfterAutomigrarPrivate(db *gorm.DB) error {
+	return nil
+}
+
+func (*MicroservicioLegajo) ActualizarVersion(db *gorm.DB)  {
+	versiondbmicroservicio.ActualizarVersionMicroservicioDB(ObtenerVersionLegajoConfiguracion(), Legajo, db)
 }

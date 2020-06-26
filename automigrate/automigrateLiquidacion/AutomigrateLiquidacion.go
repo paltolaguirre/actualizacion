@@ -4,30 +4,36 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/xubiosueldos/actualizacion/automigrate/versiondbmicroservicio"
 	"github.com/xubiosueldos/conexionBD/Liquidacion/structLiquidacion"
+	"github.com/xubiosueldos/framework/configuracion"
 )
 
 type MicroservicioLiquidacion struct {
+}
+
+func (*MicroservicioLiquidacion) GetNombre() string {
+	return "liquidacion"
+}
+
+func (*MicroservicioLiquidacion) GetVersionConfiguracion() int {
+	configuracion := configuracion.GetInstance()
+
+	return configuracion.Versionliquidacion
 }
 
 func (*MicroservicioLiquidacion) NecesitaActualizar(db *gorm.DB) bool {
 	return versiondbmicroservicio.ActualizarMicroservicio(ObtenerVersionLiquidacionConfiguracion(), ObtenerVersionLiquidacionDB(db))
 }
 
-func (*MicroservicioLiquidacion) AutomigrarPublic(db *gorm.DB) error {
-	return AutomigrateLiquidacionTablasPublicas(db)
+func (*MicroservicioLiquidacion) BeforeAutomigrarPublic(db *gorm.DB) error {
+	err := db.AutoMigrate(&structLiquidacion.Liquidacioncondicionpago{}, &structLiquidacion.Liquidaciontipo{}).Error
+	return err
 }
 
-func (*MicroservicioLiquidacion) AutomigrarPrivate(db *gorm.DB) error {
-	return AutomigrateLiquidacionTablasPrivadas(db)
+func (*MicroservicioLiquidacion) AfterAutomigrarPublic(db *gorm.DB) error {
+	return nil
 }
 
-func (*MicroservicioLiquidacion) ActualizarVersion(db *gorm.DB) {
-	versiondbmicroservicio.ActualizarVersionMicroservicioDB(ObtenerVersionLiquidacionConfiguracion(), Liquidacion, db)
-}
-
-func AutomigrateLiquidacionTablasPrivadas(db *gorm.DB) error {
-
-	// para actualizar tablas...agrega columnas e indices, pero no elimina
+func (*MicroservicioLiquidacion) BeforeAutomigrarPrivate(db *gorm.DB) error {
 	err := db.AutoMigrate(&structLiquidacion.Acumulador{}, &structLiquidacion.Liquidacionitem{}, &structLiquidacion.Liquidacion{}).Error
 	if err == nil {
 
@@ -43,23 +49,16 @@ func AutomigrateLiquidacionTablasPrivadas(db *gorm.DB) error {
 		if versionLiquidacionDB < 4 {
 			err = unificarDatosEnLaTablaLiquidacionItem(db)
 		}
-
-		if versionLiquidacionDB < 8 {
-			db.Exec("ALTER TABLE liquidacion ALTER COLUMN legajoid SET NOT NULL")
-		}
-
-		if versionLiquidacionDB < 10 {
-			db.Exec("UPDATE liquidacion SET situacionrevistaunoid = le.situacionid, fechasituacionrevistauno = fechaperiodoliquidacion FROM legajo as le where liquidacion.legajoid = le.id")
-		}
-
 	}
 	return err
 }
 
-func AutomigrateLiquidacionTablasPublicas(db *gorm.DB) error {
-	//para actualizar tablas...agrega columnas e indices, pero no elimina
-	err := db.AutoMigrate(&structLiquidacion.Liquidacioncondicionpago{}, &structLiquidacion.Liquidaciontipo{}).Error
-	return err
+func (*MicroservicioLiquidacion) AfterAutomigrarPrivate(db *gorm.DB) error {
+	return nil
+}
+
+func (*MicroservicioLiquidacion) ActualizarVersion(db *gorm.DB) {
+	versiondbmicroservicio.ActualizarVersionMicroservicioDB(ObtenerVersionLiquidacionConfiguracion(), Liquidacion, db)
 }
 
 func unificarDatosEnLaTablaLiquidacionItem(db *gorm.DB) error {

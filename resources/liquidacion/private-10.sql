@@ -1,0 +1,1 @@
+UPDATE liquidacion SET situacionrevistaunoid = le.situacionid, fechasituacionrevistauno = fechaperiodoliquidacion FROM legajo as le where liquidacion.legajoid = le.id;
