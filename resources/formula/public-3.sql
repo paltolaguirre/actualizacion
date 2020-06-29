@@ -1,6 +1,6 @@
 DO $$
 BEGIN
-    IF ((select count(*) from param where functionname = 'And') = 0) THEN
+    IF ((select count(*) from param where id = -33) = 0) THEN
         INSERT INTO param(id,created_at, name, type, functionname) VALUES(-30,current_timestamp,'val1','number','LessEqual');
         INSERT INTO param(id,created_at, name, type, functionname) VALUES(-31,current_timestamp,'val2','number','LessEqual');
         INSERT INTO param(id,created_at, name, type, functionname) VALUES(-32,current_timestamp,'val1','boolean','Not');

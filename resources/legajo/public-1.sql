@@ -2,39 +2,6 @@ DO $$
     DECLARE
         _kind "char";
     BEGIN
-               SELECT relkind
-                FROM   pg_class
-                WHERE  relname = 'pais_id_seq'  -- sequence name
-                INTO  _kind;
-                IF NOT FOUND THEN       -- name is free
-                    CREATE SEQUENCE pais_id_seq
-                        INCREMENT 1
-                        MINVALUE 1
-                        MAXVALUE 9223372036854775807
-                        START 1
-                        CACHE 1;
-                    ALTER TABLE pais_id_seq
-                        OWNER TO postgres;
-                    GRANT ALL ON SEQUENCE pais_id_seq TO postgres;
-                ELSIF _kind = 'S' THEN  -- sequence exists
-                -- nada
-                ELSE                    -- object name exists for different kind
-                -- nada
-                END IF;
-
-
-                CREATE TABLE public.pais (
-                                             id INTEGER NOT NULL DEFAULT nextval('pais_id_seq'::regclass),
-                                             created_at timestamp with time zone,
-                                             updated_at timestamp with time zone,
-                                             deleted_at timestamp with time zone,
-                                             nombre text,
-                                             codigo text,
-                                             descripcion text,
-                                             activo integer
-                );
-
-
                 INSERT INTO pais(id,nombre, codigo, activo,created_at)
                 VALUES
                 (-385,'AFGANISTAN','AFGANISTAN',1,current_timestamp),
@@ -346,41 +313,6 @@ DO $$
                 (-280,'ZIMBABWE','ZIMBABWE',1,current_timestamp),
                 (-555,'ZONA LIBRE DE OSTRAVA (CIUDAD DE LA ATIGUA CHECOSLOVAQUIA)','ZONA_LIBRE_DE_OSTRAVA_CIUDAD_DE_LA_ATIGUA_CHECOSLOVAQUIA',1,current_timestamp);
 
-
-                SELECT relkind
-                FROM   pg_class
-                WHERE  relname = 'provincia_id_seq'  -- sequence name
-                INTO  _kind;
-                IF NOT FOUND THEN       -- name is free
-                    CREATE SEQUENCE provincia_id_seq
-                        INCREMENT 1
-                        MINVALUE 1
-                        MAXVALUE 9223372036854775807
-                        START 1
-                        CACHE 1;
-                    ALTER TABLE provincia_id_seq
-                        OWNER TO postgres;
-                    GRANT ALL ON SEQUENCE provincia_id_seq TO postgres;
-                ELSIF _kind = 'S' THEN  -- sequence exists
-                -- nada
-                ELSE                    -- object name exists for different kind
-                -- nada
-                END IF;
-
-
-                CREATE TABLE public.provincia (
-                                                  id INTEGER NOT NULL DEFAULT nextval('provincia_id_seq'::regclass),
-                                                  created_at timestamp with time zone,
-                                                  updated_at timestamp with time zone,
-                                                  deleted_at timestamp with time zone,
-                                                  nombre text,
-                                                  codigo text,
-                                                  descripcion text,
-                                                  activo integer,
-                                                  paisid integer REFERENCES pais(id)
-                );
-
-
                 INSERT INTO provincia(id , paisid , nombre, codigo, activo,created_at)
                 VALUES
                 (-1,-100,'Buenos Aires','BUENOS_AIRES',1,current_timestamp),
@@ -407,40 +339,6 @@ DO $$
                 (-6,-100,'Santiago del Estero','SANTIAGO_DEL_ESTERO',1,current_timestamp),
                 (-23,-100,'Tierra del Fuego','TIERRA_DEL_FUEGO',1,current_timestamp),
                 (-17,-100,'Tucuman','TUCUMAN',1,current_timestamp);
-
-
-                SELECT relkind
-                FROM   pg_class
-                WHERE  relname = 'localidad_id_seq'  -- sequence name
-                INTO  _kind;
-                IF NOT FOUND THEN       -- name is free
-                    CREATE SEQUENCE localidad_id_seq
-                        INCREMENT 1
-                        MINVALUE 1
-                        MAXVALUE 9223372036854775807
-                        START 1
-                        CACHE 1;
-                    ALTER TABLE localidad_id_seq
-                        OWNER TO postgres;
-                    GRANT ALL ON SEQUENCE localidad_id_seq TO postgres;
-                ELSIF _kind = 'S' THEN  -- sequence exists
-                -- nada
-                ELSE                    -- object name exists for different kind
-                -- nada
-                END IF;
-
-
-                CREATE TABLE public.localidad (
-                                                  id INTEGER NOT NULL DEFAULT nextval('localidad_id_seq'::regclass),
-                                                  created_at timestamp with time zone,
-                                                  updated_at timestamp with time zone,
-                                                  deleted_at timestamp with time zone,
-                                                  nombre text,
-                                                  codigo text,
-                                                  descripcion text,
-                                                  activo integer,
-                                                  provinciaid integer REFERENCES provincia(id)
-                );
 
                 insert into localidad ( provinciaid , nombre , codigo , activo , created_at)
                 values
@@ -2861,38 +2759,6 @@ DO $$
 
                 UPDATE Localidad SET id = -id;
 
-                SELECT relkind
-                FROM   pg_class
-                WHERE  relname = 'obrasocial_id_seq'  -- sequence name
-                INTO  _kind;
-                IF NOT FOUND THEN       -- name is free
-                    CREATE SEQUENCE obrasocial_id_seq
-                        INCREMENT 1
-                        MINVALUE 1
-                        MAXVALUE 9223372036854775807
-                        START 1
-                        CACHE 1;
-                    ALTER TABLE provincia_id_seq
-                        OWNER TO postgres;
-                    GRANT ALL ON SEQUENCE obrasocial_id_seq TO postgres;
-                ELSIF _kind = 'S' THEN  -- sequence exists
-                -- nada
-                ELSE                    -- object name exists for different kind
-                -- nada
-                END IF;
-
-
-                CREATE TABLE public.obrasocial (
-                                                   id INTEGER NOT NULL DEFAULT nextval('obrasocial_id_seq'::regclass),
-                                                   created_at timestamp with time zone,
-                                                   updated_at timestamp with time zone,
-                                                   deleted_at timestamp with time zone,
-                                                   nombre text,
-                                                   codigo text,
-                                                   descripcion text,
-                                                   activo integer
-                );
-
                 INSERT INTO obrasocial(codigo, nombre, created_at, descripcion, activo)
                 values
                 ('000000','SIN OBRA SOCIAL',current_timestamp,'',1),
@@ -3446,44 +3312,6 @@ DO $$
                 (-56,current_timestamp,'Suspendido Res. 397/2020 MTEySS c/Aportes OS','48','',1),
                 (-57,current_timestamp,'Susp. periodo parcial L 20744 art. 223bis/Res. 397 MTEySS','49','',1);
 
-            END;
-        $$;
-
-        DO $$
-            BEGIN
-
-                SELECT relkind
-                FROM   pg_class
-                WHERE  relname = 'condicion_id_seq'  -- sequence name
-                INTO  _kind;
-                IF NOT FOUND THEN       -- name is free
-                    CREATE SEQUENCE condicion_id_seq
-                        INCREMENT 1
-                        MINVALUE 1
-                        MAXVALUE 9223372036854775807
-                        START 1
-                        CACHE 1;
-                    ALTER TABLE condicion_id_seq
-                        OWNER TO postgres;
-                    GRANT ALL ON SEQUENCE condicion_id_seq TO postgres;
-                ELSIF _kind = 'S' THEN  -- sequence exists
-                -- nada
-                ELSE                    -- object name exists for different kind
-                -- nada
-                END IF;
-
-
-                CREATE TABLE public.CONDICION (
-                                                  id INTEGER NOT NULL DEFAULT nextval('condicion_id_seq'::regclass),
-                                                  created_at timestamp with time zone,
-                                                  updated_at timestamp with time zone,
-                                                  deleted_at timestamp with time zone,
-                                                  nombre text,
-                                                  codigo text,
-                                                  descripcion text,
-                                                  activo integer
-                );
-
                 INSERT INTO CONDICION (id,nombre,codigo,activo)
                 VALUES
                 (-1,'Jubilado Decreto N° 894/01 y/o Dec 2288/02','0',1),
@@ -3502,38 +3330,6 @@ DO $$
                 (-14,'Servicios Diferenciados no alcanzados por el Dto. 633/2018','13',1);
 
                 DELETE FROM CONDICION WHERE ID = 1;
-
-                SELECT relkind
-                FROM   pg_class
-                WHERE  relname = 'condicionsiniestrado_id_seq'  -- sequence name
-                INTO  _kind;
-                IF NOT FOUND THEN       -- name is free
-                    CREATE SEQUENCE condicionsiniestrado_id_seq
-                        INCREMENT 1
-                        MINVALUE 1
-                        MAXVALUE 9223372036854775807
-                        START 1
-                        CACHE 1;
-                    ALTER TABLE condicionsiniestrado_id_seq
-                        OWNER TO postgres;
-                    GRANT ALL ON SEQUENCE condicionsiniestrado_id_seq TO postgres;
-                ELSIF _kind = 'S' THEN  -- sequence exists
-                -- nada
-                ELSE                    -- object name exists for different kind
-                -- nada
-                END IF;
-
-
-                CREATE TABLE public.CONDICIONSINIESTRADO (
-                                                             id INTEGER NOT NULL DEFAULT nextval('condicionsiniestrado_id_seq'::regclass),
-                                                             created_at timestamp with time zone,
-                                                             updated_at timestamp with time zone,
-                                                             deleted_at timestamp with time zone,
-                                                             nombre text,
-                                                             codigo text,
-                                                             descripcion text,
-                                                             activo integer
-                );
 
                 INSERT INTO CONDICIONSINIESTRADO(id,nombre,codigo,activo)
                 VALUES
@@ -3554,5 +3350,11 @@ DO $$
 
                 DELETE FROM CONDICION WHERE ID = 1;
 
+
+                insert into estadocivil(id, created_at, nombre, codigo, descripcion, activo) values
+                (-1, current_timestamp, 'Soltero/a', 'S', '', 1),
+                (-2, current_timestamp, 'Casado/a', 'C', '', 1),
+                (-3, current_timestamp, 'Divorciado/a', 'D', '', 1),
+                (-4, current_timestamp, 'Viudo/a', 'V', '', 1);
     end;
-    $$;
+$$;

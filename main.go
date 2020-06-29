@@ -24,17 +24,22 @@ func main() {
 	configuracion := configuracion.GetInstance()
 
 	dbPublic := conexionBD.ObtenerDB("public")
+	txPublic := dbPublic.Begin()
 	defer func() {
 		if r := recover(); r != nil {
+			txPublic.Rollback()
 			conexionBD.CerrarDB(dbPublic)
 		}
 	}()
 
-	err, actualizoMicro := automigrate.AutomigrateTablasPublicas(dbPublic)
+	err, actualizoMicro := automigrate.AutomigrateTablasPublicas(txPublic)
 	if err != nil {
 		fmt.Println("Error Public Automigrate: ", err)
+		txPublic.Rollback()
 		return
 	}
+	txPublic.Commit()
+
 	conexionBD.CerrarDB(dbPublic)
 
 	dbSecurity := conexionBD.ObtenerDB("security")

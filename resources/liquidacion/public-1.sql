@@ -44,27 +44,12 @@ DO $$
                 OIDS=FALSE
             );
 
-    END;
-$$;
-
-
-
-DO $$
-    BEGIN
         INSERT INTO deduccionespersonales(created_at,activo,valorfijoconyuge,valorfijohijo,valorfijomni,valorfijoddei,anio)
         VALUES
         (current_timestamp, 1, 80033.90, 40361.43, 103018.79, 494490.18, 2019),
         (current_timestamp, 1, 115471.38, 58232.65, 123861.17, 594533.62, 2020);
 
         UPDATE public.deduccionespersonales SET id = -id;
-    END;
-$$;
-
-
-DO $$
-    DECLARE
-        _kind "char";
-    BEGIN
 
         SELECT relkind
         FROM   pg_class
@@ -107,13 +92,6 @@ DO $$
                 OIDS=FALSE
             );
 
-    END;
-$$;
-
-
-
-DO $$
-    BEGIN
         INSERT INTO escalaimpuestoaplicable(created_at,activo,limiteinferior,limitesuperior,valorfijo,valorvariable,mesanio)
         VALUES
         (current_timestamp, 1, 0.00, 2753.32, 0.00, 0.05, '01/2019'),
@@ -334,13 +312,6 @@ DO $$
         (current_timestamp, 1, 762706.57, 9999999999.00, 170178.90, 0.35, '12/2020');
 
         UPDATE public.escalaimpuestoaplicable SET id = -id;
-    END;
-$$;
-
-DO $$
-    DECLARE
-        _kind "char";
-    BEGIN
 
         SELECT relkind
         FROM   pg_class
@@ -384,73 +355,12 @@ DO $$
                 OIDS=FALSE
             );
 
-    END;
-$$;
-
-
-
-DO $$
-    BEGIN
-
         INSERT INTO topemaximodescuento(created_at,activo,topecasomuerte,topeseguroahorro,toperetiroprivado,topesepelio,topehipotecarios,anio)
         VALUES
         (current_timestamp, 1, 12000.00, 12000.00, 12000.00, 993.26, 20000.00, 2019),
         (current_timestamp, 1, 18000.00, 18000.00, 18000.00, 993.26, 20000.00, 2020);
 
         UPDATE public.topemaximodescuento SET id = -id;
-
-    END;
-$$;
-
-DO $$
-    BEGIN
-
-        SELECT relkind
-        FROM   pg_class
-        WHERE  relname = 'estadocivil_id_seq'  -- sequence name
-        INTO  _kind;
-        IF NOT FOUND THEN       -- name is free
-            CREATE SEQUENCE estadocivil_id_seq
-                INCREMENT 1
-                MINVALUE 1
-                MAXVALUE 9223372036854775807
-                START 1
-                CACHE 1;
-            ALTER TABLE estadocivil_id_seq
-                OWNER TO postgres;
-            GRANT ALL ON SEQUENCE estadocivil_id_seq TO postgres;
-        ELSIF _kind = 'S' THEN  -- sequence exists
-        -- nada
-        ELSE                    -- object name exists for different kind
-        -- nada
-        END IF;
-
-
-        CREATE TABLE public.estadocivil (
-                                    id INTEGER NOT NULL DEFAULT nextval('estadocivil_id_seq'::regclass),
-                                    created_at timestamp with time zone,
-                                    updated_at timestamp with time zone,
-                                    deleted_at timestamp with time zone,
-                                    nombre text,
-                                    codigo text,
-                                    descripcion text,
-                                    activo integer
-        );
-
-        INSERT INTO estadocivil(codigo, nombre, created_at, descripcion, activo)
-        values
-        ('S','Soltero/a',current_timestamp,'',1),
-        ('C','Casado/a',current_timestamp,'',1),
-        ('D','Divorciado/a',current_timestamp,'',1),
-        ('V','Viudo/a',current_timestamp,'',1);
-
-        UPDATE public.estadocivil SET id = -id;
-    END
-$$;
-
-
-DO $$
-    BEGIN
 
         SELECT relkind
         FROM   pg_class
@@ -474,71 +384,7 @@ DO $$
 
 
         CREATE TABLE public.tipoliquidacion (
-                                            id INTEGER NOT NULL DEFAULT nextval('tipoliquidacion_id_seq'::regclass),
-                                            created_at timestamp with time zone,
-                                            updated_at timestamp with time zone,
-                                            deleted_at timestamp with time zone,
-                                            nombre text,
-                                            codigo text,
-                                            descripcion text,
-                                            activo integer
-        );
-
-        INSERT INTO tipoliquidacion(created_at, nombre, codigo, descripcion, activo)
-        values
-        (current_timestamp,'Importe Remunerativo','IMPORTE_REMUNERATIVO','',1),
-        (current_timestamp,'Importe No Remunerativo','IMPORTE_NO_REMUNERATIVO','',1),
-        (current_timestamp,'Descuento','DESCUENTO','',1),
-        (current_timestamp,'Retención','RETENCION','',1),
-        (current_timestamp,'Aporte Patronal','APORTE_PATRONAL','',1);
-
-        UPDATE public.tipoliquidacion SET id = -id;
-    END
-$$;
-
-DROP FUNCTION IF EXISTS ST_eliminar_liquidaciones_sin_legajo();
-
-CREATE OR REPLACE FUNCTION ST_eliminar_liquidaciones_sin_legajo() RETURNS void AS $$
-DECLARE
-    schema RECORD;
-BEGIN
-    FOR schema IN SELECT schema_name FROM information_schema.schemata INNER JOIN information_schema.tables ON table_schema = schema_name WHERE left(schema_name, 3) = 'tnt' AND table_name = 'liquidacion'
-        LOOP
-            EXECUTE format('delete from %I.liquidacion where legajoid is null', schema.schema_name);
-        END LOOP;
-END;
-$$ LANGUAGE plpgsql;
-
-DROP FUNCTION IF EXISTS ST_eliminar_liquidaciones_sin_legajo();
-
-
-
-DO $$
-    BEGIN
-
-        SELECT relkind
-        FROM   pg_class
-        WHERE  relname = 'liquidaciontipo_id_seq'  -- sequence name
-        INTO  _kind;
-        IF NOT FOUND THEN       -- name is free
-            CREATE SEQUENCE liquidaciontipo_id_seq
-                INCREMENT 1
-                MINVALUE 1
-                MAXVALUE 9223372036854775807
-                START 1
-                CACHE 1;
-            ALTER TABLE liquidaciontipo_id_seq
-                OWNER TO postgres;
-            GRANT ALL ON SEQUENCE liquidaciontipo_id_seq TO postgres;
-        ELSIF _kind = 'S' THEN  -- sequence exists
-        -- nada
-        ELSE                    -- object name exists for different kind
-        -- nada
-        END IF;
-
-
-        CREATE TABLE public.liquidaciontipo (
-                                                id INTEGER NOT NULL DEFAULT nextval('liquidaciontipo_id_seq'::regclass),
+                                                id INTEGER NOT NULL DEFAULT nextval('tipoliquidacion_id_seq'::regclass),
                                                 created_at timestamp with time zone,
                                                 updated_at timestamp with time zone,
                                                 deleted_at timestamp with time zone,
@@ -558,50 +404,110 @@ DO $$
         (-6,'Liquidación Final','LIQUIDACION_FINAL',1,current_timestamp);
 
         UPDATE public.tipoliquidacion SET id = -id;
-    END
-$$;
-
-
-DO $$
-    BEGIN
-
-        SELECT relkind
-        FROM   pg_class
-        WHERE  relname = 'liquidacioncondicionpago_id_seq'  -- sequence name
-        INTO  _kind;
-        IF NOT FOUND THEN       -- name is free
-            CREATE SEQUENCE liquidacioncondicionpago_id_seq
-                INCREMENT 1
-                MINVALUE 1
-                MAXVALUE 9223372036854775807
-                START 1
-                CACHE 1;
-            ALTER TABLE liquidacioncondicionpago_id_seq
-                OWNER TO postgres;
-            GRANT ALL ON SEQUENCE liquidacioncondicionpago_id_seq TO postgres;
-        ELSIF _kind = 'S' THEN  -- sequence exists
-        -- nada
-        ELSE                    -- object name exists for different kind
-        -- nada
-        END IF;
-
-
-        CREATE TABLE public.liquidacioncondicionpago (
-                                                id INTEGER NOT NULL DEFAULT nextval('liquidacioncondicionpago_id_seq'::regclass),
-                                                created_at timestamp with time zone,
-                                                updated_at timestamp with time zone,
-                                                deleted_at timestamp with time zone,
-                                                nombre text,
-                                                codigo text,
-                                                descripcion text,
-                                                activo integer
-        );
 
         INSERT INTO liquidacioncondicionpago(id,nombre,codigo,activo,created_at)
         VALUES
         (-1,'Cuenta Corriente','CUENTA_CORRIENTE',1,current_timestamp),
         (-2,'Contado','CONTADO',1,current_timestamp);
 
+        IF NOT EXISTS (SELECT ID
+                       FROM CONCEPTOAFIP
+                       LIMIT 1)
+        THEN
+            INSERT INTO CONCEPTOAFIP(id, created_at, nombre, codigo, descripcion, activo, tipoconceptoid)
+            VALUES(-1, current_timestamp,'Sueldo', '110000', 'Sueldo', 1, -1),
+                  (-2, current_timestamp,'Preaviso', '110001', 'Preaviso', 1, -1),
+                  (-3, current_timestamp,'Remuneraciones en especie', '110002', 'Remuneraciones en especie', 1, -1),
+                  (-4, current_timestamp,'Comida', '110003', 'Comida', 1, -1),
+                  (-5, current_timestamp,'Habitacion', '110004', 'Habitacion', 1, -1),
+                  (-6, current_timestamp,'Licencias por estudio', '110005', 'Licencias por estudio', 1, -1),
+                  (-7, current_timestamp,'Donacion de sangre', '110006', 'Donacion de sangre', 1, -1),
+                  (-8, current_timestamp,'Feriado', '110007', 'Feriado', 1, -1),
+                  (-9, current_timestamp,'Prest. Dineraria Ley 24577 (primeros 10d)', '110008', 'Prest. Dineraria Ley 24577 (primeros 10d)', 1, -1),
+                  (-10, current_timestamp,'Prest. Dineraria Ley 24577 (a cargo de ART)', '110009', 'Prest. Dineraria Ley 24577 (a cargo de ART)', 1, -1),
+                  (-11, current_timestamp,'Sueldo anual complementario', '120000', 'Sueldo anual complementario', 1, -1),
+                  (-12, current_timestamp,'SAC 1er semestre', '120001', 'SAC 1er semestre', 1, -1),
+                  (-13, current_timestamp,'SAC 2do semestre', '120002', 'SAC 2do semestre', 1, -1),
+                  (-14, current_timestamp,'SAC proporcional', '120003', 'SAC proporcional', 1, -1),
+                  (-15, current_timestamp,'Horas extras', '130000', 'Horas extras', 1, -1),
+                  (-16, current_timestamp,'Horas extras 50%', '130001', 'Horas extras 50%', 1, -1),
+                  (-17, current_timestamp,'Horas extras 100%', '130002', 'Horas extras 100%', 1, -1),
+                  (-18, current_timestamp,'Horas extras 200%', '130003', 'Horas extras 200%', 1, -1),
+                  (-19, current_timestamp,'Zona desfavorable', '140000', 'Zona desfavorable', 1, -1),
+                  (-20, current_timestamp,'Adelanto vacacional', '150000', 'Adelanto vacacional', 1, -1),
+                  (-21, current_timestamp,'Adicionales', '160000', 'Adicionales', 1, -1),
+                  (-22, current_timestamp,'Adicional por antigüedad', '160001', 'Adicional por antigüedad', 1, -1),
+                  (-23, current_timestamp,'Adicional por titulo', '160002', 'Adicional por titulo', 1, -1),
+                  (-24, current_timestamp,'Adicional por tarea', '160003', 'Adicional por tarea', 1, -1),
+                  (-25, current_timestamp,'Adicional por desarraigo', '160004', 'Adicional por desarraigo', 1, -1),
+                  (-26, current_timestamp,'Gratificaciones y/o Premios', '170000', 'Gratificaciones y/o Premios', 1, -1),
+                  (-27, current_timestamp,'Premio por presentismo', '170001', 'Premio por presentismo', 1, -1),
+                  (-28, current_timestamp,'Premio por produccion', '170002', 'Premio por produccion', 1, -1),
+                  (-29, current_timestamp,'Comisiones', '170003', 'Comisiones', 1, -1),
+                  (-30, current_timestamp,'Accesorios', '170004', 'Accesorios', 1, -1),
+                  (-31, current_timestamp,'Viáticos sin comprobante', '170005', 'Viáticos sin comprobante', 1, -1),
+                  (-32, current_timestamp,'Propinas habituales no prohibidas', '170006', 'Propinas habituales no prohibidas', 1, -1),
+                  (-33, current_timestamp,'Redondeo (Remunerativo)', '499999', 'Redondeo (Remunerativo)', 1, -1),
+                  (-34, current_timestamp,'Asignaciones Familiares', '510000', 'Asignaciones Familiares', 1, -2),
+                  (-35, current_timestamp,'Ayuda escolar', '510001', 'Ayuda escolar', 1, -2),
+                  (-36, current_timestamp,'Asignacion por hijo/hijo con discapacidad', '510002', 'Asignacion por hijo/hijo con discapacidad', 1, -2),
+                  (-37, current_timestamp,'Asignacion por maternidad', '510003', 'Asignacion por maternidad', 1, -2),
+                  (-38, current_timestamp,'Asignacion por maternidad down', '510004', 'Asignacion por maternidad down', 1, -2),
+                  (-39, current_timestamp,'Asignacion por matrimonio', '510005', 'Asignacion por matrimonio', 1, -2),
+                  (-40, current_timestamp,'Asignacion por nacimiento / adopcion', '510006', 'Asignacion por nacimiento / adopcion', 1, -2),
+                  (-41, current_timestamp,'Asignacion por prenatal', '510007', 'Asignacion por prenatal', 1, -2),
+                  (-42, current_timestamp,'Beneficios sociales', '520000', 'Beneficios sociales', 1, -2),
+                  (-43, current_timestamp,'Servicio de comedor', '520001', 'Servicio de comedor', 1, -2),
+                  (-44, current_timestamp,'Gastos medicos', '520002', 'Gastos medicos', 1, -2),
+                  (-45, current_timestamp,'Provision de ropa de trabajo', '520003', 'Provision de ropa de trabajo', 1, -2),
+                  (-46, current_timestamp,'Guarderia', '520004', 'Guarderia', 1, -2),
+                  (-47, current_timestamp,'Provision de utiles escolares', '520005', 'Provision de utiles escolares', 1, -2),
+                  (-48, current_timestamp,'Gastos de sepelio', '520006', 'Gastos de sepelio', 1, -2),
+                  (-49, current_timestamp,'Cursos de capacitacion', '520007', 'Cursos de capacitacion', 1, -2),
+                  (-50, current_timestamp,'Becas (art. 7 Ley 24.241 y modif.)', '520008', 'Becas (art. 7 Ley 24.241 y modif.)', 1, -2),
+                  (-51, current_timestamp,'Desempleo (art. 7 Ley 24.241 y modif.)', '520009', 'Desempleo (art. 7 Ley 24.241 y modif.)', 1, -2),
+                  (-52, current_timestamp,'Gratificacion por cese laboral (art. 7 Ley 24.241 y modif.)', '520010', 'Gratificacion por cese laboral (art. 7 Ley 24.241 y modif.)', 1, -2),
+                  (-53, current_timestamp,'Indemnizacion por extincion del contrato de trabajo (art. 7 Ley 24.241 y modif.)', '520011', 'Indemnizacion por extincion del contrato de trabajo (art. 7 Ley 24.241 y modif.)', 1, -2),
+                  (-54, current_timestamp,'Vacaciones no gozadas (art. 7 Ley 24.241 y modif.)', '520012', 'Vacaciones no gozadas (art. 7 Ley 24.241 y modif.)', 1, -2),
+                  (-55, current_timestamp,'Incapacidad permanente (art. 7 Ley 24.241 y modif.)', '520013', 'Incapacidad permanente (art. 7 Ley 24.241 y modif.)', 1, -2),
+                  (-56, current_timestamp,'Indemizacion por despido', '520014', 'Indemizacion por despido', 1, -2),
+                  (-57, current_timestamp,'Indemizacion sustitutiva del preaviso', '520015', 'Indemizacion sustitutiva del preaviso', 1, -2),
+                  (-58, current_timestamp,'Integracion mes de despido', '520016', 'Integracion mes de despido', 1, -2),
+                  (-59, current_timestamp,'SAC sobre integracion o preaviso', '520017', 'SAC sobre integracion o preaviso', 1, -2),
+                  (-60, current_timestamp,'SAC sobre vacaciones no gozadas', '520018', 'SAC sobre vacaciones no gozadas', 1, -2),
+                  (-61, current_timestamp,'Incrementos no remunerativos (con aportes OS)', '530000', 'Incrementos no remunerativos (con aportes OS)', 1, -2),
+                  (-62, current_timestamp,'Incrementos no remunerativos (con aportes y contribuciones OS)', '540000', 'Incrementos no remunerativos (con aportes y contribuciones OS)', 1, -2),
+                  (-63, current_timestamp,'Importes no remunerativos especiales', '550000', 'Importes no remunerativos especiales', 1, -2),
+                  (-64, current_timestamp,'Redondeo (No Remunerativo)', '799999', 'Redondeo (No Remunerativo)', 1, -2),
+                  (-65, current_timestamp,'Sistema previsional', '810000', 'Sistema previsional', 1, -4),
+                  (-66, current_timestamp,'INSSJyP', '810001', 'INSSJyP', 1, -4),
+                  (-67, current_timestamp,'Obra Social', '810002', 'Obra Social', 1, -4),
+                  (-68, current_timestamp,'Fondo Solidario de Redistribucion (ex ANSSAL)', '810003', 'Fondo Solidario de Redistribucion (ex ANSSAL)', 1, -3),
+                  (-69, current_timestamp,'Cuota Sindical', '810004', 'Cuota Sindical', 1, -4),
+                  (-70, current_timestamp,'Seguro de Vida', '810005', 'Seguro de Vida', 1, -4),
+                  (-71, current_timestamp,'RENATEA (ex RENATRE)', '810006', 'RENATEA (ex RENATRE)', 1, -4),
+                  (-72, current_timestamp,'Prestamos', '810007', 'Prestamos', 1, -4),
+                  (-73, current_timestamp,'Impuesto a las Ganancias', '810008', 'Impuesto a las Ganancias', 1, -4),
+                  (-74, current_timestamp,'Obra Social - Adherentes', '810009', 'Obra Social - Adherentes', 1, -4),
+                  (-75, current_timestamp,'Fondo Solidario de Redistribucion (ex ANSSAL) - Adherentes', '810010', 'Fondo Solidario de Redistribucion (ex ANSSAL) - Adherentes', 1, -4),
+                  (-76, current_timestamp,'Otros descuentos', '820000', 'Otros descuentos', 1, -4);
+        END IF;
+
     END
 $$;
 
+
+
+
+DROP FUNCTION IF EXISTS ST_eliminar_liquidaciones_sin_legajo();
+
+CREATE OR REPLACE FUNCTION ST_eliminar_liquidaciones_sin_legajo() RETURNS void AS $$
+DECLARE
+    schema RECORD;
+BEGIN
+    FOR schema IN SELECT schema_name FROM information_schema.schemata INNER JOIN information_schema.tables ON table_schema = schema_name WHERE left(schema_name, 3) = 'tnt' AND table_name = 'liquidacion'
+        LOOP
+            EXECUTE format('delete from %I.liquidacion where legajoid is null', schema.schema_name);
+        END LOOP;
+END;
+$$ LANGUAGE plpgsql;

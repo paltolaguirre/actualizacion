@@ -4,27 +4,26 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/jinzhu/gorm"
-	"github.com/xubiosueldos/conexionBD"
 	"github.com/xubiosueldos/conexionBD/Function/structFunction"
 	"unicode"
 )
 
-func CrearFunctionEnMicroservicioFormulas(funcion string) error {
+func CrearFunctionEnMicroservicioFormulas(db *gorm.DB, funcion string) error {
 
 	var funcionData structFunction.Function
 
 	err := json.Unmarshal([]byte(funcion), &funcionData)
 
-	if err == nil {
+	if err != nil {
 		return err
 	}
 
-	err = SavePublicFunction(funcionData)
+	err = SavePublicFunction(db, funcionData)
 
 	return err
 }
 
-func SavePublicFunction(functionData structFunction.Function) error {
+func SavePublicFunction(db *gorm.DB, functionData structFunction.Function) error {
 
 	var err error
 	runeName := []rune(functionData.Name)
@@ -37,44 +36,28 @@ func SavePublicFunction(functionData structFunction.Function) error {
 		functionData.Name = string(runeName)
 	}
 
-	dbPublic := conexionBD.ObtenerDB("public")
-	defer conexionBD.CerrarDB(dbPublic)
-
 	var function structFunction.Function
 	existeFuncion := true
 	//Busco si existe
-	if err := dbPublic.Set("gorm:auto_preload", true).First(&function, "name = ?", functionData.Name).Error; gorm.IsRecordNotFoundError(err) {
+	if err := db.Set("gorm:auto_preload", true).First(&function, "name = ?", functionData.Name).Error; gorm.IsRecordNotFoundError(err) {
 		existeFuncion = false;
 	}
 
-	//abro una transacción para que si hay un error no persista en la DB
-	tx := dbPublic.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
-
 	if existeFuncion {
 		//--Borrado Fisico
-		if err := tx.Unscoped().Where("name = ?", functionData.Name).Delete(structFunction.Function{}).Error; err != nil {
-			tx.Rollback()
+		if err := db.Unscoped().Where("name = ?", functionData.Name).Delete(structFunction.Function{}).Error; err != nil {
 			return err
 		}
 
-		err := deleteValue(function.Value, tx)
+		err := deleteValue(function.Value, db)
 		if err != nil {
-			tx.Rollback()
 			return err
 		}
 	}
 
-	if err := tx.Create(&functionData).Error; err != nil {
-		tx.Rollback()
+	if err := db.Create(&functionData).Error; err != nil {
 		return err
 	}
-
-	tx.Commit()
 
 	return err
 }
