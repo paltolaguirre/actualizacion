@@ -14,7 +14,7 @@ import (
 
 
 
-type Microservicio interface {
+type Automigrate interface {
 	NecesitaActualizar(*gorm.DB) bool
 	BeforeAutomigrarPublic(*gorm.DB) error
 	AfterAutomigrarPublic(*gorm.DB) error
@@ -23,10 +23,11 @@ type Microservicio interface {
 	ActualizarVersion(*gorm.DB)
 	GetNombre() string
 	GetVersionConfiguracion() int
+	GetVersionDB(db *gorm.DB) int
 }
 
-var automigratePublicArray = []Microservicio{&automigrateLegajo.MicroservicioLegajo{}, &automigrateConcepto.MicroservicioConcepto{}, &automigrateLiquidacion.MicroservicioLiquidacion{}, &automigrateSiradig.MicroservicioSiradig{}, &automigrateFunction.MicroservicioFunction{}, &automigrateNovedad.MicroservicioNovedad{}}
-var automigratePrivateArray = []Microservicio{&automigrateFunction.MicroservicioFunction{}, &automigrateLegajo.MicroservicioLegajo{}, &automigrateConcepto.MicroservicioConcepto{}, &automigrateNovedad.MicroservicioNovedad{}, &automigrateLiquidacion.MicroservicioLiquidacion{}, &automigrateSiradig.MicroservicioSiradig{}}
+var automigratePublicArray = []Automigrate{&automigrateLegajo.AutomigrateLegajo{}, &automigrateConcepto.AutomigrateConcepto{}, &automigrateLiquidacion.AutomigrateLiquidacion{}, &automigrateSiradig.AutomigrateSiradig{}, &automigrateFunction.AutomigrateFunction{}, &automigrateNovedad.AutomigrateNovedad{}}
+var automigratePrivateArray = []Automigrate{&automigrateFunction.AutomigrateFunction{}, &automigrateLegajo.AutomigrateLegajo{}, &automigrateConcepto.AutomigrateConcepto{}, &automigrateNovedad.AutomigrateNovedad{}, &automigrateLiquidacion.AutomigrateLiquidacion{}, &automigrateSiradig.AutomigrateSiradig{}}
 
 func AutomigrateTablaSecurity(db *gorm.DB) (error,bool) {
 
@@ -59,7 +60,7 @@ func AutomigrateTablasPublicas(db *gorm.DB) (error, bool) {
 				return err, false
 			}
 
-			err = versiondbmicroservicio.ActualizarVersionesScript(versiondbmicroservicio.UltimaVersion(microservicio.GetNombre(), db), microservicio.GetVersionConfiguracion(), microservicio.GetNombre(), "public", db)
+			err = versiondbmicroservicio.ActualizarVersionesScript(microservicio.GetVersionDB(db), microservicio.GetVersionConfiguracion(), microservicio.GetNombre(), "public", db)
 
 			if err != nil {
 				return err, false
@@ -92,7 +93,7 @@ func AutomigrateTablasPrivadas(db *gorm.DB) error {
 				return err
 			}
 
-			err = versiondbmicroservicio.ActualizarVersionesScript(versiondbmicroservicio.UltimaVersion(microservicio.GetNombre(), db), microservicio.GetVersionConfiguracion(), microservicio.GetNombre(), "private", db)
+			err = versiondbmicroservicio.ActualizarVersionesScript(microservicio.GetVersionDB(db), microservicio.GetVersionConfiguracion(), microservicio.GetNombre(), "private", db)
 
 			if err != nil {
 				return err

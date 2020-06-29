@@ -7,44 +7,45 @@ import (
 	"github.com/xubiosueldos/framework/configuracion"
 )
 
-type MicroservicioNovedad struct{
+type AutomigrateNovedad struct{
 }
 
-func (*MicroservicioNovedad) GetNombre() string {
+func (*AutomigrateNovedad) GetNombre() string {
 	return "novedad"
 }
 
-func (*MicroservicioNovedad) NecesitaActualizar(db *gorm.DB) bool {
-	return versiondbmicroservicio.ActualizarMicroservicio(ObtenerVersionNovedadConfiguracion(), ObtenerVersionNovedadDB(db))
+func (am *AutomigrateNovedad) NecesitaActualizar(db *gorm.DB) bool {
+	return versiondbmicroservicio.ActualizarMicroservicio(am.GetVersionConfiguracion(), am.GetVersionDB(db))
 }
 
-func (*MicroservicioNovedad) GetVersionConfiguracion() int {
+func (*AutomigrateNovedad) GetVersionConfiguracion() int {
 	configuracion := configuracion.GetInstance()
 
 	return configuracion.Versionnovedad
 }
 
-func (*MicroservicioNovedad) BeforeAutomigrarPublic(db *gorm.DB) error {
+func (*AutomigrateNovedad) BeforeAutomigrarPublic(db *gorm.DB) error {
 	return nil
 }
-func (*MicroservicioNovedad) AfterAutomigrarPublic(db *gorm.DB) error {
+func (*AutomigrateNovedad) AfterAutomigrarPublic(db *gorm.DB) error {
 	return nil
 }
 
-func (*MicroservicioNovedad) BeforeAutomigrarPrivate(db *gorm.DB) error {
+func (am *AutomigrateNovedad) BeforeAutomigrarPrivate(db *gorm.DB) error {
 	err := db.AutoMigrate(&structNovedad.Novedad{}).Error
 	db.Model(&structNovedad.Novedad{}).AddForeignKey("conceptoid", "concepto(id)", "RESTRICT", "RESTRICT")
-
-	err = versiondbmicroservicio.ActualizarVersionesScript(ObtenerVersionNovedadDB(db), ObtenerVersionNovedadConfiguracion(), "novedad", "private", db)
 
 	return err
 }
 
-func (*MicroservicioNovedad) AfterAutomigrarPrivate(db *gorm.DB) error {
+func (*AutomigrateNovedad) AfterAutomigrarPrivate(db *gorm.DB) error {
 	return nil
 }
 
-func (*MicroservicioNovedad) ActualizarVersion(db *gorm.DB)  {
-	versiondbmicroservicio.ActualizarVersionMicroservicioDB(ObtenerVersionNovedadConfiguracion(), Novedad, db)
+func (am *AutomigrateNovedad) ActualizarVersion(db *gorm.DB)  {
+	versiondbmicroservicio.ActualizarVersionMicroservicioDB(am.GetVersionConfiguracion(), am.GetNombre(), db)
 }
 
+func (am *AutomigrateNovedad) GetVersionDB(db *gorm.DB) int {
+	return versiondbmicroservicio.UltimaVersion(am.GetNombre(), db)
+}

@@ -7,37 +7,37 @@ import (
 	"github.com/xubiosueldos/framework/configuracion"
 )
 
-type MicroservicioLiquidacion struct {
+type AutomigrateLiquidacion struct {
 }
 
-func (*MicroservicioLiquidacion) GetNombre() string {
+func (*AutomigrateLiquidacion) GetNombre() string {
 	return "liquidacion"
 }
 
-func (*MicroservicioLiquidacion) GetVersionConfiguracion() int {
+func (*AutomigrateLiquidacion) GetVersionConfiguracion() int {
 	configuracion := configuracion.GetInstance()
 
 	return configuracion.Versionliquidacion
 }
 
-func (*MicroservicioLiquidacion) NecesitaActualizar(db *gorm.DB) bool {
-	return versiondbmicroservicio.ActualizarMicroservicio(ObtenerVersionLiquidacionConfiguracion(), ObtenerVersionLiquidacionDB(db))
+func (am *AutomigrateLiquidacion) NecesitaActualizar(db *gorm.DB) bool {
+	return versiondbmicroservicio.ActualizarMicroservicio(am.GetVersionConfiguracion(), am.GetVersionDB(db))
 }
 
-func (*MicroservicioLiquidacion) BeforeAutomigrarPublic(db *gorm.DB) error {
+func (*AutomigrateLiquidacion) BeforeAutomigrarPublic(db *gorm.DB) error {
 	err := db.AutoMigrate(&structLiquidacion.Liquidacioncondicionpago{}, &structLiquidacion.Liquidaciontipo{}).Error
 	return err
 }
 
-func (*MicroservicioLiquidacion) AfterAutomigrarPublic(db *gorm.DB) error {
+func (*AutomigrateLiquidacion) AfterAutomigrarPublic(db *gorm.DB) error {
 	return nil
 }
 
-func (*MicroservicioLiquidacion) BeforeAutomigrarPrivate(db *gorm.DB) error {
+func (am *AutomigrateLiquidacion) BeforeAutomigrarPrivate(db *gorm.DB) error {
 	err := db.AutoMigrate(&structLiquidacion.Acumulador{}, &structLiquidacion.Liquidacionitem{}, &structLiquidacion.Liquidacion{}).Error
 	if err == nil {
 
-		versionLiquidacionDB := ObtenerVersionLiquidacionDB(db)
+		versionLiquidacionDB := am.GetVersionDB(db)
 
 		if versionLiquidacionDB < 7 {
 			err = db.Exec("DELETE FROM liquidacionitem WHERE id IN (SELECT li.id FROM liquidacionitem li LEFT JOIN concepto c ON li.conceptoid = c.id WHERE c.id IS NULL)").Error
@@ -53,12 +53,16 @@ func (*MicroservicioLiquidacion) BeforeAutomigrarPrivate(db *gorm.DB) error {
 	return err
 }
 
-func (*MicroservicioLiquidacion) AfterAutomigrarPrivate(db *gorm.DB) error {
+func (*AutomigrateLiquidacion) AfterAutomigrarPrivate(db *gorm.DB) error {
 	return nil
 }
 
-func (*MicroservicioLiquidacion) ActualizarVersion(db *gorm.DB) {
-	versiondbmicroservicio.ActualizarVersionMicroservicioDB(ObtenerVersionLiquidacionConfiguracion(), Liquidacion, db)
+func (am *AutomigrateLiquidacion) GetVersionDB(db *gorm.DB) int {
+	return versiondbmicroservicio.UltimaVersion(am.GetNombre(), db)
+}
+
+func (am *AutomigrateLiquidacion) ActualizarVersion(db *gorm.DB) {
+	versiondbmicroservicio.ActualizarVersionMicroservicioDB(am.GetVersionConfiguracion(), am.GetNombre(), db)
 }
 
 func unificarDatosEnLaTablaLiquidacionItem(db *gorm.DB) error {

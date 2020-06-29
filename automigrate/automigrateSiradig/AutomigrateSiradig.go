@@ -8,37 +8,34 @@ import (
 )
 
 
-type MicroservicioSiradig struct{
+type AutomigrateSiradig struct{
 }
 
-func (*MicroservicioSiradig) GetNombre() string {
+func (*AutomigrateSiradig) GetNombre() string {
 	return "siradig"
 }
 
-func (*MicroservicioSiradig) GetVersionConfiguracion() int {
+func (*AutomigrateSiradig) GetVersionConfiguracion() int {
 	configuracion := configuracion.GetInstance()
 
 	return configuracion.Versionsiradig
 }
 
-func (*MicroservicioSiradig) NecesitaActualizar(db *gorm.DB) bool {
-	return versiondbmicroservicio.ActualizarMicroservicio(ObtenerVersionSiradigConfiguracion(), ObtenerVersionSiradigDB(db))
+func (am *AutomigrateSiradig) NecesitaActualizar(db *gorm.DB) bool {
+	return versiondbmicroservicio.ActualizarMicroservicio(am.GetVersionConfiguracion(), am.GetVersionDB(db))
 }
 
-func (*MicroservicioSiradig) BeforeAutomigrarPublic(db *gorm.DB) error {
+func (*AutomigrateSiradig) BeforeAutomigrarPublic(db *gorm.DB) error {
 	err := db.AutoMigrate(&structSiradig.Siradigtipoimpuesto{}, &structSiradig.Siradigtipooperacion{}, &structSiradig.Siradigtipogrilla{}).Error
-	if err == nil {
-		versiondbmicroservicio.ActualizarVersionesScript(ObtenerVersionSiradigDB(db), ObtenerVersionSiradigConfiguracion(), "siradig", "public", db)
-	}
 
 	return err
 }
 
-func (*MicroservicioSiradig) AfterAutomigrarPublic(db *gorm.DB) error {
+func (*AutomigrateSiradig) AfterAutomigrarPublic(db *gorm.DB) error {
 	return nil
 }
 
-func (*MicroservicioSiradig) BeforeAutomigrarPrivate(db *gorm.DB) error {
+func (*AutomigrateSiradig) BeforeAutomigrarPrivate(db *gorm.DB) error {
 	err := db.AutoMigrate(&structSiradig.Detallecargofamiliarsiradig{}, &structSiradig.Importegananciasotroempleosiradig{}, &structSiradig.Deducciondesgravacionsiradig{}, &structSiradig.Retencionpercepcionsiradig{}, &structSiradig.Beneficiosiradig{}, &structSiradig.Ajustesiradig{}, &structSiradig.Siradig{}).Error
 	if err == nil {
 		db.Model(&structSiradig.Detallecargofamiliarsiradig{}).AddForeignKey("siradigid", "siradig(id)", "CASCADE", "CASCADE")
@@ -62,10 +59,14 @@ func (*MicroservicioSiradig) BeforeAutomigrarPrivate(db *gorm.DB) error {
 	return err
 }
 
-func (*MicroservicioSiradig) AfterAutomigrarPrivate(db *gorm.DB) error {
+func (*AutomigrateSiradig) AfterAutomigrarPrivate(db *gorm.DB) error {
 	return nil
 }
 
-func (*MicroservicioSiradig) ActualizarVersion(db *gorm.DB)  {
-	versiondbmicroservicio.ActualizarVersionMicroservicioDB(ObtenerVersionSiradigConfiguracion(), Siradig, db)
+func (am *AutomigrateSiradig) ActualizarVersion(db *gorm.DB)  {
+	versiondbmicroservicio.ActualizarVersionMicroservicioDB(am.GetVersionConfiguracion(), am.GetNombre(), db)
+}
+
+func (am *AutomigrateSiradig) GetVersionDB(db *gorm.DB) int {
+	return versiondbmicroservicio.UltimaVersion(am.GetNombre(), db)
 }

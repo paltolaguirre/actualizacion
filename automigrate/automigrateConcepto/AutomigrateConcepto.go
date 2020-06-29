@@ -7,34 +7,37 @@ import (
 	"github.com/xubiosueldos/framework/configuracion"
 )
 
-type MicroservicioConcepto struct {
+type AutomigrateConcepto struct {
 }
 
-func (*MicroservicioConcepto) GetNombre() string {
+func (*AutomigrateConcepto) GetNombre() string {
 	return "concepto"
 }
 
-func (*MicroservicioConcepto) GetVersionConfiguracion() int {
+func (*AutomigrateConcepto) GetVersionConfiguracion() int {
 	configuracion := configuracion.GetInstance()
 
 	return configuracion.Versionconcepto
 }
-
-
-func (*MicroservicioConcepto) NecesitaActualizar(db *gorm.DB) bool {
-	return versiondbmicroservicio.ActualizarMicroservicio(ObtenerVersionConceptoConfiguracion(), ObtenerVersionConceptoDB(db))
+func (am *AutomigrateConcepto) GetVersionDB(db *gorm.DB) int {
+	return versiondbmicroservicio.UltimaVersion(am.GetNombre(), db)
 }
 
-func (*MicroservicioConcepto) BeforeAutomigrarPublic(db *gorm.DB) error {
+
+func (am *AutomigrateConcepto) NecesitaActualizar(db *gorm.DB) bool {
+	return versiondbmicroservicio.ActualizarMicroservicio(am.GetVersionConfiguracion(), am.GetVersionDB(db))
+}
+
+func (*AutomigrateConcepto) BeforeAutomigrarPublic(db *gorm.DB) error {
 	err := db.AutoMigrate(&structConcepto.Tipocalculoautomatico{}, &structConcepto.Tipoconcepto{}, &structConcepto.Tipodecalculo{}, &structConcepto.Tipoimpuestoganancias{}, &structConcepto.Conceptoafip{}, &structConcepto.Concepto{}).Error
 	return err
 }
 
-func (*MicroservicioConcepto) AfterAutomigrarPublic(db *gorm.DB) error {
+func (*AutomigrateConcepto) AfterAutomigrarPublic(db *gorm.DB) error {
 	return nil
 }
 
-func (*MicroservicioConcepto) BeforeAutomigrarPrivate(db *gorm.DB) error {
+func (*AutomigrateConcepto) BeforeAutomigrarPrivate(db *gorm.DB) error {
 	err := db.AutoMigrate(&structConcepto.Concepto{}).Error
 	if err == nil {
 		db.Model(&structConcepto.Concepto{}).AddForeignKey("tipoconceptoid", "tipoconcepto(id)", "RESTRICT", "RESTRICT")
@@ -46,18 +49,18 @@ func (*MicroservicioConcepto) BeforeAutomigrarPrivate(db *gorm.DB) error {
 	return err
 }
 
-func (*MicroservicioConcepto) AfterAutomigrarPrivate(db *gorm.DB) error {
-	err := ObtenerConceptosPublicos(db)
+func (am *AutomigrateConcepto) AfterAutomigrarPrivate(db *gorm.DB) error {
+	err := am.ObtenerConceptosPublicos(db)
 	return err
 }
 
-func (*MicroservicioConcepto) ActualizarVersion(db *gorm.DB) {
-	versiondbmicroservicio.ActualizarVersionMicroservicioDB(ObtenerVersionConceptoConfiguracion(), Concepto, db)
+func (am *AutomigrateConcepto) ActualizarVersion(db *gorm.DB) {
+	versiondbmicroservicio.ActualizarVersionMicroservicioDB(am.GetVersionConfiguracion(), am.GetNombre(), db)
 }
 
-func ObtenerConceptosPublicos(db *gorm.DB) error {
+func (am *AutomigrateConcepto) ObtenerConceptosPublicos(db *gorm.DB) error {
 
-	versionConceptoDB := ObtenerVersionConceptoDB(db)
+	versionConceptoDB := am.GetVersionDB(db)
 
 	db.Exec("select ST_copy_concepto_public_privado()")
 
