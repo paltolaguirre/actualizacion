@@ -26,8 +26,8 @@ type Automigrate interface {
 	GetVersionDB(db *gorm.DB) int
 }
 
-var automigratePublicArray = []Automigrate{&automigrateLegajo.AutomigrateLegajo{}, &automigrateConcepto.AutomigrateConcepto{}, &automigrateLiquidacion.AutomigrateLiquidacion{}, &automigrateSiradig.AutomigrateSiradig{}, &automigrateFunction.AutomigrateFunction{}, &automigrateNovedad.AutomigrateNovedad{}}
-var automigratePrivateArray = []Automigrate{&automigrateFunction.AutomigrateFunction{}, &automigrateLegajo.AutomigrateLegajo{}, &automigrateConcepto.AutomigrateConcepto{}, &automigrateNovedad.AutomigrateNovedad{}, &automigrateLiquidacion.AutomigrateLiquidacion{}, &automigrateSiradig.AutomigrateSiradig{}}
+var automigratePublicArray = []Automigrate{&automigrateLegajo.AutomigrateLegajo{}, &automigrateFunction.AutomigrateFunction{}, &automigrateConcepto.AutomigrateConcepto{}, &automigrateNovedad.AutomigrateNovedad{}, &automigrateSiradig.AutomigrateSiradig{}, &automigrateLiquidacion.AutomigrateLiquidacion{}}
+var automigratePrivateArray = []Automigrate{&automigrateLegajo.AutomigrateLegajo{}, &automigrateFunction.AutomigrateFunction{}, &automigrateConcepto.AutomigrateConcepto{}, &automigrateNovedad.AutomigrateNovedad{}, &automigrateSiradig.AutomigrateSiradig{}, &automigrateLiquidacion.AutomigrateLiquidacion{}}
 
 func AutomigrateTablaSecurity(db *gorm.DB) (error,bool) {
 
@@ -85,7 +85,7 @@ func AutomigrateTablasPrivadas(db *gorm.DB) error {
 
 	versiondbmicroservicio.CrearTablaVersionDBMicroservicio(db)
 
-	for _, microservicio := range automigratePublicArray {
+	for _, microservicio := range automigratePrivateArray {
 		if microservicio.NecesitaActualizar(db) {
 			err := microservicio.BeforeAutomigrarPrivate(db)
 
