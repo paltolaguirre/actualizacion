@@ -3,6 +3,7 @@ package automigrateFunction
 import (
 	"github.com/jinzhu/gorm"
 	"github.com/xubiosueldos/actualizacion/automigrate/versiondbmicroservicio"
+	"github.com/xubiosueldos/conexionBD"
 	"github.com/xubiosueldos/conexionBD/Function/structFunction"
 	"github.com/xubiosueldos/framework/configuracion"
 )
@@ -28,7 +29,10 @@ func (am *AutomigrateFunction) NecesitaActualizar(db *gorm.DB) bool {
 	return versiondbmicroservicio.ActualizarMicroservicio(am.GetVersionConfiguracion(), am.GetVersionDB(db))
 }
 
-func (*AutomigrateFunction) BeforeAutomigrarPublic(db *gorm.DB) error {
+func (*AutomigrateFunction) BeforeAutomigrarPublic() error {
+	db := conexionBD.ObtenerDB("public")
+	defer conexionBD.CerrarDB(db)
+
 	err := db.AutoMigrate(&structFunction.Value{}, &structFunction.Invoke{}, &structFunction.Param{}, &structFunction.Function{}).Error
 
 	return err
@@ -53,7 +57,10 @@ func (am *AutomigrateFunction) AfterAutomigrarPublic(db *gorm.DB) error {
 	return nil
 }
 
-func (*AutomigrateFunction) BeforeAutomigrarPrivate(db *gorm.DB) error {
+func (*AutomigrateFunction) BeforeAutomigrarPrivate(tenant string) error {
+	db := conexionBD.ConnectBD(tenant)
+	defer conexionBD.CerrarDB(db)
+
 	err := db.AutoMigrate(&structFunction.Invoke{}, &structFunction.Value{}, &structFunction.Param{}, &structFunction.Function{}).Error
 	if err == nil {
 		db.Model(&structFunction.Param{}).AddForeignKey("functionname", "function(name)", "CASCADE", "CASCADE")

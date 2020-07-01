@@ -3,6 +3,7 @@ package automigrateSiradig
 import (
 	"github.com/jinzhu/gorm"
 	"github.com/xubiosueldos/actualizacion/automigrate/versiondbmicroservicio"
+	"github.com/xubiosueldos/conexionBD"
 	"github.com/xubiosueldos/conexionBD/Siradig/structSiradig"
 	"github.com/xubiosueldos/framework/configuracion"
 )
@@ -25,7 +26,10 @@ func (am *AutomigrateSiradig) NecesitaActualizar(db *gorm.DB) bool {
 	return versiondbmicroservicio.ActualizarMicroservicio(am.GetVersionConfiguracion(), am.GetVersionDB(db))
 }
 
-func (*AutomigrateSiradig) BeforeAutomigrarPublic(db *gorm.DB) error {
+func (*AutomigrateSiradig) BeforeAutomigrarPublic() error {
+	db := conexionBD.ObtenerDB("public")
+	defer conexionBD.CerrarDB(db)
+
 	err := db.AutoMigrate(&structSiradig.Siradigtipoimpuesto{}, &structSiradig.Siradigtipooperacion{}, &structSiradig.Siradigtipogrilla{}).Error
 
 	return err
@@ -35,7 +39,10 @@ func (*AutomigrateSiradig) AfterAutomigrarPublic(db *gorm.DB) error {
 	return nil
 }
 
-func (*AutomigrateSiradig) BeforeAutomigrarPrivate(db *gorm.DB) error {
+func (*AutomigrateSiradig) BeforeAutomigrarPrivate(tenant string) error {
+	db := conexionBD.ConnectBD(tenant)
+	defer conexionBD.CerrarDB(db)
+
 	err := db.AutoMigrate(&structSiradig.Detallecargofamiliarsiradig{}, &structSiradig.Importegananciasotroempleosiradig{}, &structSiradig.Deducciondesgravacionsiradig{}, &structSiradig.Retencionpercepcionsiradig{}, &structSiradig.Beneficiosiradig{}, &structSiradig.Ajustesiradig{}, &structSiradig.Siradig{}).Error
 	if err == nil {
 		db.Model(&structSiradig.Detallecargofamiliarsiradig{}).AddForeignKey("siradigid", "siradig(id)", "CASCADE", "CASCADE")

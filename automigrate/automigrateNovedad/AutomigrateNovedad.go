@@ -3,6 +3,7 @@ package automigrateNovedad
 import (
 	"github.com/jinzhu/gorm"
 	"github.com/xubiosueldos/actualizacion/automigrate/versiondbmicroservicio"
+	"github.com/xubiosueldos/conexionBD"
 	"github.com/xubiosueldos/conexionBD/Novedad/structNovedad"
 	"github.com/xubiosueldos/framework/configuracion"
 )
@@ -24,14 +25,17 @@ func (*AutomigrateNovedad) GetVersionConfiguracion() int {
 	return configuracion.Versionnovedad
 }
 
-func (*AutomigrateNovedad) BeforeAutomigrarPublic(db *gorm.DB) error {
+func (*AutomigrateNovedad) BeforeAutomigrarPublic() error {
 	return nil
 }
 func (*AutomigrateNovedad) AfterAutomigrarPublic(db *gorm.DB) error {
 	return nil
 }
 
-func (am *AutomigrateNovedad) BeforeAutomigrarPrivate(db *gorm.DB) error {
+func (am *AutomigrateNovedad) BeforeAutomigrarPrivate(tenant string) error {
+	db := conexionBD.ConnectBD(tenant)
+	defer conexionBD.CerrarDB(db)
+
 	err := db.AutoMigrate(&structNovedad.Novedad{}).Error
 	db.Model(&structNovedad.Novedad{}).AddForeignKey("conceptoid", "concepto(id)", "RESTRICT", "RESTRICT")
 

@@ -3,6 +3,7 @@ package automigrateLiquidacion
 import (
 	"github.com/jinzhu/gorm"
 	"github.com/xubiosueldos/actualizacion/automigrate/versiondbmicroservicio"
+	"github.com/xubiosueldos/conexionBD"
 	"github.com/xubiosueldos/conexionBD/Liquidacion/structLiquidacion"
 	"github.com/xubiosueldos/framework/configuracion"
 )
@@ -24,7 +25,9 @@ func (am *AutomigrateLiquidacion) NecesitaActualizar(db *gorm.DB) bool {
 	return versiondbmicroservicio.ActualizarMicroservicio(am.GetVersionConfiguracion(), am.GetVersionDB(db))
 }
 
-func (*AutomigrateLiquidacion) BeforeAutomigrarPublic(db *gorm.DB) error {
+func (*AutomigrateLiquidacion) BeforeAutomigrarPublic() error {
+	db := conexionBD.ObtenerDB("public")
+	defer conexionBD.CerrarDB(db)
 	err := db.AutoMigrate(&structLiquidacion.Liquidacioncondicionpago{}, &structLiquidacion.Liquidaciontipo{}).Error
 	return err
 }
@@ -33,7 +36,10 @@ func (*AutomigrateLiquidacion) AfterAutomigrarPublic(db *gorm.DB) error {
 	return nil
 }
 
-func (am *AutomigrateLiquidacion) BeforeAutomigrarPrivate(db *gorm.DB) error {
+func (am *AutomigrateLiquidacion) BeforeAutomigrarPrivate(tenant string) error {
+	db := conexionBD.ConnectBD(tenant)
+	defer conexionBD.CerrarDB(db)
+
 	err := db.AutoMigrate(&structLiquidacion.Acumulador{}, &structLiquidacion.Liquidacionitem{}, &structLiquidacion.Liquidacion{}).Error
 	if err == nil {
 

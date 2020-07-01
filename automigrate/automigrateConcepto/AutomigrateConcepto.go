@@ -3,6 +3,7 @@ package automigrateConcepto
 import (
 	"github.com/jinzhu/gorm"
 	"github.com/xubiosueldos/actualizacion/automigrate/versiondbmicroservicio"
+	"github.com/xubiosueldos/conexionBD"
 	"github.com/xubiosueldos/conexionBD/Concepto/structConcepto"
 	"github.com/xubiosueldos/framework/configuracion"
 )
@@ -28,7 +29,9 @@ func (am *AutomigrateConcepto) NecesitaActualizar(db *gorm.DB) bool {
 	return versiondbmicroservicio.ActualizarMicroservicio(am.GetVersionConfiguracion(), am.GetVersionDB(db))
 }
 
-func (*AutomigrateConcepto) BeforeAutomigrarPublic(db *gorm.DB) error {
+func (*AutomigrateConcepto) BeforeAutomigrarPublic() error {
+	db := conexionBD.ObtenerDB("public")
+	defer conexionBD.CerrarDB(db)
 	err := db.AutoMigrate(&structConcepto.Tipocalculoautomatico{}, &structConcepto.Tipoconcepto{}, &structConcepto.Tipodecalculo{}, &structConcepto.Tipoimpuestoganancias{}, &structConcepto.Conceptoafip{}, &structConcepto.Concepto{}).Error
 	return err
 }
@@ -37,7 +40,10 @@ func (*AutomigrateConcepto) AfterAutomigrarPublic(db *gorm.DB) error {
 	return nil
 }
 
-func (*AutomigrateConcepto) BeforeAutomigrarPrivate(db *gorm.DB) error {
+func (*AutomigrateConcepto) BeforeAutomigrarPrivate(tenant string) error {
+	db := conexionBD.ConnectBD(tenant)
+	defer conexionBD.CerrarDB(db)
+
 	err := db.AutoMigrate(&structConcepto.Concepto{}).Error
 	if err == nil {
 		db.Model(&structConcepto.Concepto{}).AddForeignKey("tipoconceptoid", "tipoconcepto(id)", "RESTRICT", "RESTRICT")

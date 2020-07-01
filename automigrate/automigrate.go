@@ -18,9 +18,9 @@ import (
 
 type Automigrate interface {
 	NecesitaActualizar(*gorm.DB) bool
-	BeforeAutomigrarPublic(*gorm.DB) error
+	BeforeAutomigrarPublic() error
 	AfterAutomigrarPublic(*gorm.DB) error
-	BeforeAutomigrarPrivate(*gorm.DB) error
+	BeforeAutomigrarPrivate(tenant string) error
 	AfterAutomigrarPrivate(*gorm.DB) error
 	ActualizarVersion(*gorm.DB)
 	GetNombre() string
@@ -98,7 +98,7 @@ func AutomigratePublico(microservicio Automigrate, db *gorm.DB, actualizo *bool)
 	conexionBD.LockTable(tx, "versiondbmicroservicio")
 
 	if microservicio.NecesitaActualizar(tx) {
-		err := microservicio.BeforeAutomigrarPublic(tx)
+		err := microservicio.BeforeAutomigrarPublic()
 
 		if err != nil {
 			tx.Rollback()
@@ -128,13 +128,13 @@ func AutomigratePublico(microservicio Automigrate, db *gorm.DB, actualizo *bool)
 	return nil
 }
 
-func AutomigrateTablasPrivadas(db *gorm.DB) error {
+func AutomigrateTablasPrivadas(db *gorm.DB, tenant string) error {
 
 	versiondbmicroservicio.CrearTablaVersionDBMicroservicio(db)
 
 	for _, microservicio := range automigratePrivateArray {
 
-		err := AutomigratePrivado(microservicio, db)
+		err := AutomigratePrivado(microservicio, db, tenant)
 
 		if err != nil {
 			return err
@@ -144,7 +144,7 @@ func AutomigrateTablasPrivadas(db *gorm.DB) error {
 	return nil
 }
 
-func AutomigratePrivado(microservicio Automigrate, db *gorm.DB) error {
+func AutomigratePrivado(microservicio Automigrate, db *gorm.DB, tenant string) error {
 
 	tx := db.Begin()
 
@@ -157,7 +157,7 @@ func AutomigratePrivado(microservicio Automigrate, db *gorm.DB) error {
 	conexionBD.LockTable(tx, "versiondbmicroservicio")
 
 	if microservicio.NecesitaActualizar(tx) {
-		err := microservicio.BeforeAutomigrarPrivate(tx)
+		err := microservicio.BeforeAutomigrarPrivate(tenant)
 
 		if err != nil {
 			tx.Rollback()

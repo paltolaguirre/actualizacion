@@ -3,6 +3,7 @@ package automigrateLegajo
 import (
 	"github.com/jinzhu/gorm"
 	"github.com/xubiosueldos/actualizacion/automigrate/versiondbmicroservicio"
+	"github.com/xubiosueldos/conexionBD"
 	"github.com/xubiosueldos/conexionBD/Legajo/structLegajo"
 	"github.com/xubiosueldos/framework/configuracion"
 )
@@ -24,7 +25,9 @@ func (am *AutomigrateLegajo) NecesitaActualizar(db *gorm.DB) bool {
 	return versiondbmicroservicio.ActualizarMicroservicio(am.GetVersionConfiguracion(), am.GetVersionDB(db))
 }
 
-func (*AutomigrateLegajo) BeforeAutomigrarPublic(db *gorm.DB) error {
+func (*AutomigrateLegajo) BeforeAutomigrarPublic() error {
+	db := conexionBD.ObtenerDB("public")
+	defer conexionBD.CerrarDB(db)
 	err := db.AutoMigrate(&structLegajo.Pais{}, &structLegajo.Provincia{}, &structLegajo.Localidad{}, &structLegajo.Modalidadcontratacion{}, &structLegajo.Situacion{}, &structLegajo.Condicion{}, &structLegajo.Condicionsiniestrado{}, &structLegajo.Obrasocial{}, &structLegajo.Estadocivil{}).Error
 	return err
 }
@@ -32,7 +35,10 @@ func (*AutomigrateLegajo) AfterAutomigrarPublic(db *gorm.DB) error {
 	return nil
 }
 
-func (*AutomigrateLegajo) BeforeAutomigrarPrivate(db *gorm.DB) error {
+func (*AutomigrateLegajo) BeforeAutomigrarPrivate(tenant string) error {
+	db := conexionBD.ConnectBD(tenant)
+	defer conexionBD.CerrarDB(db)
+
 	err := db.AutoMigrate(&structLegajo.Conyuge{}, &structLegajo.Hijo{}, &structLegajo.Legajo{}).Error
 	if err == nil {
 		db.Model(&structLegajo.Hijo{}).AddForeignKey("legajoid", "legajo(id)", "CASCADE", "CASCADE")
