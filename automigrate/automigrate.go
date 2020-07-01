@@ -10,6 +10,8 @@ import (
 	"github.com/xubiosueldos/actualizacion/automigrate/automigrateNovedad"
 	"github.com/xubiosueldos/actualizacion/automigrate/automigrateSiradig"
 	"github.com/xubiosueldos/actualizacion/automigrate/versiondbmicroservicio"
+	"github.com/xubiosueldos/conexionBD"
+	"github.com/xubiosueldos/conexionBD/Autenticacion/structAutenticacion"
 )
 
 
@@ -29,23 +31,43 @@ type Automigrate interface {
 var automigratePublicArray = []Automigrate{&automigrateLegajo.AutomigrateLegajo{}, &automigrateFunction.AutomigrateFunction{}, &automigrateConcepto.AutomigrateConcepto{}, &automigrateNovedad.AutomigrateNovedad{}, &automigrateSiradig.AutomigrateSiradig{}, &automigrateLiquidacion.AutomigrateLiquidacion{}}
 var automigratePrivateArray = []Automigrate{&automigrateLegajo.AutomigrateLegajo{}, &automigrateFunction.AutomigrateFunction{}, &automigrateConcepto.AutomigrateConcepto{}, &automigrateNovedad.AutomigrateNovedad{}, &automigrateSiradig.AutomigrateSiradig{}, &automigrateLiquidacion.AutomigrateLiquidacion{}}
 
-func AutomigrateTablaSecurity(db *gorm.DB) (error,bool) {
+func AutomigrateTablaSecurity(db *gorm.DB, actualizoMicro bool) error {
 
 	actualizo := false
 	var err error
 	versiondbmicroservicio.CrearTablaVersionDBMicroservicio(db)
 
+	txSecurity := db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			txSecurity.Rollback()
+		}
+	}()
+
 	if versiondbmicroservicio.ActualizarMicroservicio(automigrateAutenticacion.ObtenerVersionAutenticacionConfiguracion(), automigrateAutenticacion.ObtenerVersionAutenticacionDB(db)) {
 		if err = automigrateAutenticacion.AutomigrateAutenticacionTablaSecurity(db); err != nil {
-			return err, actualizo
+			txSecurity.Rollback()
+			return err
 		} else {
 			actualizo = true
 			versiondbmicroservicio.ActualizarVersionMicroservicioDB(automigrateAutenticacion.ObtenerVersionAutenticacionConfiguracion(), automigrateAutenticacion.Security, db)
 		}
 	}
-	return err, actualizo
+
+	if actualizoMicro || actualizo {
+		cleanConnections(txSecurity)
+	}
+
+	txSecurity.Commit()
+
+	return err
+
 
 }
+func cleanConnections(db *gorm.DB)  {
+	db.Model(&structAutenticacion.Security{}).Update("necesitaupdate", true)
+}
+
 
 func AutomigrateTablasPublicas(db *gorm.DB) (error, bool) {
 
@@ -53,61 +75,114 @@ func AutomigrateTablasPublicas(db *gorm.DB) (error, bool) {
 	versiondbmicroservicio.CrearTablaVersionDBMicroservicio(db)
 
 	for _, microservicio := range automigratePublicArray {
-		if microservicio.NecesitaActualizar(db) {
-			err := microservicio.BeforeAutomigrarPublic(db)
+		err := AutomigratePublico(microservicio, db, &actualizo)
 
-			if err != nil {
-				return err, false
-			}
-
-			err = versiondbmicroservicio.ActualizarVersionesScript(microservicio.GetVersionDB(db), microservicio.GetVersionConfiguracion(), microservicio.GetNombre(), "public", db)
-
-			if err != nil {
-				return err, false
-			}
-
-			err = microservicio.AfterAutomigrarPublic(db)
-
-			if err != nil {
-				return err, false
-			}
-
-			actualizo = true
-			microservicio.ActualizarVersion(db)
+		if err != nil {
+			return err, actualizo
 		}
 	}
 
 	return nil, actualizo
 }
 
+func AutomigratePublico(microservicio Automigrate, db *gorm.DB, actualizo *bool) error {
+
+	tx := db.Begin()
+
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	conexionBD.LockTable(tx, "versiondbmicroservicio")
+
+	if microservicio.NecesitaActualizar(tx) {
+		err := microservicio.BeforeAutomigrarPublic(tx)
+
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+
+		err = versiondbmicroservicio.ActualizarVersionesScript(microservicio.GetVersionDB(tx), microservicio.GetVersionConfiguracion(), microservicio.GetNombre(), "public", tx)
+
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+
+		err = microservicio.AfterAutomigrarPublic(tx)
+
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+
+		*actualizo = true
+		microservicio.ActualizarVersion(tx)
+	}
+
+	tx.Commit()
+
+	return nil
+}
 
 func AutomigrateTablasPrivadas(db *gorm.DB) error {
 
 	versiondbmicroservicio.CrearTablaVersionDBMicroservicio(db)
 
 	for _, microservicio := range automigratePrivateArray {
-		if microservicio.NecesitaActualizar(db) {
-			err := microservicio.BeforeAutomigrarPrivate(db)
 
-			if err != nil {
-				return err
-			}
+		err := AutomigratePrivado(microservicio, db)
 
-			err = versiondbmicroservicio.ActualizarVersionesScript(microservicio.GetVersionDB(db), microservicio.GetVersionConfiguracion(), microservicio.GetNombre(), "private", db)
-
-			if err != nil {
-				return err
-			}
-
-			err = microservicio.AfterAutomigrarPrivate(db)
-
-			if err != nil {
-				return err
-			}
-
-			microservicio.ActualizarVersion(db)
+		if err != nil {
+			return err
 		}
 	}
+
+	return nil
+}
+
+func AutomigratePrivado(microservicio Automigrate, db *gorm.DB) error {
+
+	tx := db.Begin()
+
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	conexionBD.LockTable(tx, "versiondbmicroservicio")
+
+	if microservicio.NecesitaActualizar(tx) {
+		err := microservicio.BeforeAutomigrarPrivate(tx)
+
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+
+		err = versiondbmicroservicio.ActualizarVersionesScript(microservicio.GetVersionDB(tx), microservicio.GetVersionConfiguracion(), microservicio.GetNombre(), "private", tx)
+
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+
+		err = microservicio.AfterAutomigrarPrivate(tx)
+
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+
+		microservicio.ActualizarVersion(tx)
+
+	}
+
+	tx.Commit()
 
 	return nil
 }

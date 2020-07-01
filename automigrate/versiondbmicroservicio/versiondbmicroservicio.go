@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/jinzhu/gorm"
-	"github.com/xubiosueldos/conexionBD"
 	"github.com/xubiosueldos/conexionBD/structGormModel"
 	"io/ioutil"
 	"strconv"
@@ -19,7 +18,6 @@ type Versiondbmicroservicio struct {
 func CrearTablaVersionDBMicroservicio(db *gorm.DB) {
 
 	db.AutoMigrate(&Versiondbmicroservicio{})
-	conexionBD.LockTable(db, "versiondbmicroservicio")
 
 }
 

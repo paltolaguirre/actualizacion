@@ -2,10 +2,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/jinzhu/gorm"
 	"github.com/xubiosueldos/actualizacion/automigrate"
 	"github.com/xubiosueldos/conexionBD"
-	"github.com/xubiosueldos/conexionBD/Autenticacion/structAutenticacion"
 	"github.com/xubiosueldos/framework/configuracion"
 	"log"
 	"net/http"
@@ -38,28 +36,14 @@ func main() {
 
 }
 
-func cleanConnections(db *gorm.DB)  {
-	db.Model(&structAutenticacion.Security{}).Update("necesitaupdate", true)
-}
-
-
 func actualizarTablasPublicas() (error, bool) {
 	dbPublic := conexionBD.ObtenerDB("public")
 	defer conexionBD.CerrarDB(dbPublic)
 
-	txPublic := dbPublic.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			txPublic.Rollback()
-		}
-	}()
-
-	err, actualizoMicro := automigrate.AutomigrateTablasPublicas(txPublic)
+	err, actualizoMicro := automigrate.AutomigrateTablasPublicas(dbPublic)
 	if err != nil {
-		txPublic.Rollback()
 		return err, actualizoMicro
 	}
-	txPublic.Commit()
 
 	return nil, actualizoMicro
 }
@@ -67,24 +51,11 @@ func actualizarTablasPublicas() (error, bool) {
 func actualizarSecurity(actualizoMicro bool) error {
 	dbSecurity := conexionBD.ObtenerDB("security")
 	defer conexionBD.CerrarDB(dbSecurity)
-	txSecurity := dbSecurity.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			txSecurity.Rollback()
-		}
-	}()
 
-	err, actualizoSecurity := automigrate.AutomigrateTablaSecurity(txSecurity)
+	err := automigrate.AutomigrateTablaSecurity(dbSecurity, actualizoMicro)
 	if err != nil {
-		txSecurity.Rollback()
 		return err
 	}
-
-	if actualizoMicro || actualizoSecurity {
-		cleanConnections(txSecurity)
-	}
-
-	txSecurity.Commit()
 
 	return nil
 }

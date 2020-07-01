@@ -29,20 +29,12 @@ func Actualizar(writer http.ResponseWriter, request *http.Request) {
 	tenant := security.Tenant
 	db := conexionBD.ObtenerDB(tenant)
 	defer conexionBD.CerrarDB(db)
-	tx := db.Begin()
 
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
-
-	err= automigrate.AutomigrateTablasPrivadas(tx)
+	err= automigrate.AutomigrateTablasPrivadas(db)
 
 	dbSecurity := conexionBD.ObtenerDB("security")
 	defer conexionBD.CerrarDB(dbSecurity)
 	if err != nil {
-		db.Rollback()
 		fmt.Println("Error Automigrate Tablas Privadas: ", err)
 		if err := dbSecurity.Unscoped().Where("token = ?", security.Token).Delete(structAutenticacion.Security{}).Error; err != nil {
 			framework.RespondError(writer, http.StatusInternalServerError, err.Error())
@@ -50,7 +42,6 @@ func Actualizar(writer http.ResponseWriter, request *http.Request) {
 		framework.RespondError(writer, http.StatusInternalServerError, fmt.Sprintf("%s: %s", framework.ErrorAutomigrate, err.Error()))
 		return
 	} else {
-		tx.Commit()
 		security.Necesitaupdate = false
 		dbSecurity.Model(&security).Where("tenant = ?", security.Tenant).Update("necesitaupdate", false)
 	}
