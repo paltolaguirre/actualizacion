@@ -3,35 +3,47 @@ package automigrateLiquidacion
 import (
 	"github.com/jinzhu/gorm"
 	"github.com/xubiosueldos/actualizacion/automigrate/versiondbmicroservicio"
+	"github.com/xubiosueldos/conexionBD"
 	"github.com/xubiosueldos/conexionBD/Liquidacion/structLiquidacion"
+	"github.com/xubiosueldos/framework/configuracion"
 )
 
-type MicroservicioLiquidacion struct {
+type AutomigrateLiquidacion struct {
 }
 
-func (*MicroservicioLiquidacion) NecesitaActualizar(db *gorm.DB) bool {
-	return versiondbmicroservicio.ActualizarMicroservicio(ObtenerVersionLiquidacionConfiguracion(), ObtenerVersionLiquidacionDB(db))
+func (*AutomigrateLiquidacion) GetNombre() string {
+	return "liquidacion"
 }
 
-func (*MicroservicioLiquidacion) AutomigrarPublic(db *gorm.DB) error {
-	return AutomigrateLiquidacionTablasPublicas(db)
+func (*AutomigrateLiquidacion) GetVersionConfiguracion() int {
+	configuracion := configuracion.GetInstance()
+
+	return configuracion.Versionliquidacion
 }
 
-func (*MicroservicioLiquidacion) AutomigrarPrivate(db *gorm.DB) error {
-	return AutomigrateLiquidacionTablasPrivadas(db)
+func (am *AutomigrateLiquidacion) NecesitaActualizar(db *gorm.DB) bool {
+	return versiondbmicroservicio.ActualizarMicroservicio(am.GetVersionConfiguracion(), am.GetVersionDB(db))
 }
 
-func (*MicroservicioLiquidacion) ActualizarVersion(db *gorm.DB) {
-	versiondbmicroservicio.ActualizarVersionMicroservicioDB(ObtenerVersionLiquidacionConfiguracion(), Liquidacion, db)
+func (*AutomigrateLiquidacion) BeforeAutomigrarPublic() error {
+	db := conexionBD.ObtenerDB("public")
+	defer conexionBD.CerrarDB(db)
+	err := db.AutoMigrate(&structLiquidacion.Liquidacioncondicionpago{}, &structLiquidacion.Liquidaciontipo{}).Error
+	return err
 }
 
-func AutomigrateLiquidacionTablasPrivadas(db *gorm.DB) error {
+func (*AutomigrateLiquidacion) AfterAutomigrarPublic(db *gorm.DB) error {
+	return nil
+}
 
-	// para actualizar tablas...agrega columnas e indices, pero no elimina
+func (am *AutomigrateLiquidacion) BeforeAutomigrarPrivate(tenant string) error {
+	db := conexionBD.ConnectBD(tenant)
+	defer conexionBD.CerrarDB(db)
+
 	err := db.AutoMigrate(&structLiquidacion.Acumulador{}, &structLiquidacion.Liquidacionitem{}, &structLiquidacion.Liquidacion{}).Error
 	if err == nil {
 
-		versionLiquidacionDB := ObtenerVersionLiquidacionDB(db)
+		versionLiquidacionDB := am.GetVersionDB(db)
 
 		if versionLiquidacionDB < 7 {
 			err = db.Exec("DELETE FROM liquidacionitem WHERE id IN (SELECT li.id FROM liquidacionitem li LEFT JOIN concepto c ON li.conceptoid = c.id WHERE c.id IS NULL)").Error
@@ -43,42 +55,37 @@ func AutomigrateLiquidacionTablasPrivadas(db *gorm.DB) error {
 		if versionLiquidacionDB < 4 {
 			err = unificarDatosEnLaTablaLiquidacionItem(db)
 		}
-
-		if versionLiquidacionDB < 8 {
-			db.Exec("ALTER TABLE liquidacion ALTER COLUMN legajoid SET NOT NULL")
-		}
-
-		if versionLiquidacionDB < 10 {
-			db.Exec("UPDATE liquidacion SET situacionrevistaunoid = le.situacionid, fechasituacionrevistauno = fechaperiodoliquidacion FROM legajo as le where liquidacion.legajoid = le.id")
-		}
-
 	}
 	return err
 }
 
-func AutomigrateLiquidacionTablasPublicas(db *gorm.DB) error {
-	//para actualizar tablas...agrega columnas e indices, pero no elimina
-	err := db.AutoMigrate(&structLiquidacion.Liquidacioncondicionpago{}, &structLiquidacion.Liquidaciontipo{}).Error
-	return err
+func (*AutomigrateLiquidacion) AfterAutomigrarPrivate(db *gorm.DB) error {
+	return nil
+}
+
+func (am *AutomigrateLiquidacion) GetVersionDB(db *gorm.DB) int {
+	return versiondbmicroservicio.UltimaVersion(am.GetNombre(), db)
+}
+
+func (am *AutomigrateLiquidacion) ActualizarVersion(db *gorm.DB) {
+	versiondbmicroservicio.ActualizarVersionMicroservicioDB(am.GetVersionConfiguracion(), am.GetNombre(), db)
 }
 
 func unificarDatosEnLaTablaLiquidacionItem(db *gorm.DB) error {
 	//abro una transacción para que si hay un error no persista en la DB
 	var err error
-	tx := db.Begin()
-	defer tx.Rollback()
 
-	if err = insertTablaLiquidacionTipo(tx); err != nil {
+	if err = insertTablaLiquidacionTipo(db); err != nil {
 		return err
 	}
-	tx.Commit()
 	return err
 }
 
 func insertTablaLiquidacionTipo(tx *gorm.DB) error {
 	var err error
+
 	//Necesito comparar porque las empresas nuevas no tienen las cinco tablas (importeremunerativo,descuento,retencion...)
-	if err = tx.Exec("SELECT * FROM importeremunerativo limit 1").Error; err == nil {
+	if tx.HasTable("importeremunerativo") {
 
 		if err = tx.Exec("INSERT INTO liquidacionitem(created_at,updated_at,deleted_at,conceptoid,importeunitario,liquidacionid) (SELECT created_at,updated_at,deleted_at,conceptoid,importeunitario,liquidacionid FROM importeremunerativo)").Error; err != nil {
 			return err
@@ -109,11 +116,6 @@ func insertTablaLiquidacionTipo(tx *gorm.DB) error {
 			return err
 		} else {
 			tx.Exec("DELETE FROM aportepatronal")
-		}
-	} else {
-		if err.Error() == "pq: relation \"importeremunerativo\" does not exist" {
-			//Cuando el refactor no se hace hay que devolver nil para que se cree el registro de liquidacion en la tabla versiondbmicroservicio
-			err = nil
 		}
 	}
 	return err

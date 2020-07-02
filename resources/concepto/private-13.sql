@@ -1,0 +1,1 @@
+update concepto set esremvariable = false where esremvariable is NULL;
