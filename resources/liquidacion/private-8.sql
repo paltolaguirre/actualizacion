@@ -1,0 +1,1 @@
+ALTER TABLE liquidacion ALTER COLUMN legajoid SET NOT NULL;
