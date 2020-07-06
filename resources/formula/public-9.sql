@@ -1,0 +1,2 @@
+INSERT INTO value(id, created_at, name, valuenumber, valuestring, valueboolean, valueinvokeid, arginvokeid) VALUES(-66,current_timestamp,'return',0,'',false,null,0);
+INSERT INTO function(name, created_at, description, origin, type, scope, result, valueid) VALUES('CantidadConcepto', current_timestamp, 'Valor del campo \"Cantidad\" al momento de utilizar el concepto que tenga relacionada esta formula dentro de la liquidación.', 'primitive', 'helper', 'public', 'number', -66);

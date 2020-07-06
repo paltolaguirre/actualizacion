@@ -1,0 +1,1 @@
+alter table novedad alter column cantidad type numeric(19,4);
