@@ -1,0 +1,1 @@
+update concepto set esganancias = true where id in (-29, -30);
