@@ -15,6 +15,8 @@ type Versiondbmicroservicio struct {
 	Versionmicroservicio int
 }
 
+var cacheDeScripts = make(map[string]string)
+
 func CrearTablaVersionDBMicroservicio(db *gorm.DB) {
 
 	db.AutoMigrate(&Versiondbmicroservicio{})
@@ -48,16 +50,37 @@ func ActualizarMicroservicio(versionMicroservicioConfiguracion int, versionMicro
 	return versionMicroservicioConfiguracion > versionMicroservicioDB
 }
 
-func RunVersion(microservicio string, tipo string, version string, db *gorm.DB) error{
+func RunVersion(microservicio string, tipo string, version string, db *gorm.DB) error {
 	path := "resources/" + microservicio + "/" + tipo + "-" + version + ".sql"
 
-	c, ioErr := ioutil.ReadFile(path)
-	if ioErr != nil {
+	script := ""
+	esta := false
+	usacache := false
+	if tipo == "private" {
+		usacache = true
+		script, esta = cacheDeScripts[path]
+	}
 
+	if !esta {
+		c, ioErr := ioutil.ReadFile(path)
+		if ioErr != nil {
+			if usacache {
+				cacheDeScripts[path] = ""
+			}
+
+		} else {
+			script := string(c)
+			if usacache {
+				cacheDeScripts[path] = script
+			}
+		}
+	}
+
+	if script == "" {
 		return nil
 	}
-	sql := string(c)
-	err := db.Exec(sql).Error
+
+	err := db.Exec(script).Error
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error al ejecutar el script %s/%s-%s: %s\n", microservicio, tipo, version, err.Error()))
 	}
@@ -65,8 +88,8 @@ func RunVersion(microservicio string, tipo string, version string, db *gorm.DB) 
 	return nil
 }
 
-func ActualizarVersionesScript(versionDB int, versionConfig int, microservicio string, tipo string, db *gorm.DB) error{
-	for versionDB++ ; versionDB <= versionConfig; versionDB++ {
+func ActualizarVersionesScript(versionDB int, versionConfig int, microservicio string, tipo string, db *gorm.DB) error {
+	for versionDB++; versionDB <= versionConfig; versionDB++ {
 		err := RunVersion(microservicio, tipo, strconv.Itoa(versionDB), db)
 		if err != nil {
 			return err
