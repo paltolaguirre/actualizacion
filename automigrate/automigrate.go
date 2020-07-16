@@ -9,6 +9,7 @@ import (
 	"github.com/xubiosueldos/actualizacion/automigrate/automigrateLiquidacion"
 	"github.com/xubiosueldos/actualizacion/automigrate/automigrateNovedad"
 	"github.com/xubiosueldos/actualizacion/automigrate/automigrateSiradig"
+	"github.com/xubiosueldos/actualizacion/automigrate/automigrateTarea"
 	"github.com/xubiosueldos/actualizacion/automigrate/versiondbmicroservicio"
 	"github.com/xubiosueldos/conexionBD"
 	"github.com/xubiosueldos/conexionBD/Autenticacion/structAutenticacion"
@@ -28,8 +29,8 @@ type Automigrate interface {
 	GetVersionDB(db *gorm.DB) int
 }
 
-var automigratePublicArray = []Automigrate{&automigrateLegajo.AutomigrateLegajo{}, &automigrateFunction.AutomigrateFunction{}, &automigrateConcepto.AutomigrateConcepto{}, &automigrateNovedad.AutomigrateNovedad{}, &automigrateSiradig.AutomigrateSiradig{}, &automigrateLiquidacion.AutomigrateLiquidacion{}}
-var automigratePrivateArray = []Automigrate{&automigrateLegajo.AutomigrateLegajo{}, &automigrateFunction.AutomigrateFunction{}, &automigrateConcepto.AutomigrateConcepto{}, &automigrateNovedad.AutomigrateNovedad{}, &automigrateSiradig.AutomigrateSiradig{}, &automigrateLiquidacion.AutomigrateLiquidacion{}}
+var automigratePublicArray = []Automigrate{&automigrateLegajo.AutomigrateLegajo{}, &automigrateFunction.AutomigrateFunction{}, &automigrateConcepto.AutomigrateConcepto{}, &automigrateNovedad.AutomigrateNovedad{}, &automigrateSiradig.AutomigrateSiradig{}, &automigrateLiquidacion.AutomigrateLiquidacion{}, &automigrateTarea.AutomigrateTarea{}}
+var automigratePrivateArray = []Automigrate{&automigrateLegajo.AutomigrateLegajo{}, &automigrateFunction.AutomigrateFunction{}, &automigrateConcepto.AutomigrateConcepto{}, &automigrateNovedad.AutomigrateNovedad{}, &automigrateSiradig.AutomigrateSiradig{}, &automigrateLiquidacion.AutomigrateLiquidacion{}, &automigrateTarea.AutomigrateTarea{}}
 
 func AutomigrateTablaSecurity(db *gorm.DB, actualizoMicro bool) error {
 
