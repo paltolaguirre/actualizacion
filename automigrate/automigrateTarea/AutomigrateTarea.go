@@ -4,7 +4,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/xubiosueldos/actualizacion/automigrate/versiondbmicroservicio"
 	"github.com/xubiosueldos/conexionBD"
-	"github.com/xubiosueldos/conexionBD/TaskManager/structTarea"
+	"github.com/xubiosueldos/conexionBD/Tarea/structTarea"
 	"github.com/xubiosueldos/framework/configuracion"
 )
 
