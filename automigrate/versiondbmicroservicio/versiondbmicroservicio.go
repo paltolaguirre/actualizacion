@@ -69,7 +69,7 @@ func RunVersion(microservicio string, tipo string, version string, db *gorm.DB) 
 			}
 
 		} else {
-			script := string(c)
+			script = string(c)
 			if usacache {
 				cacheDeScripts[path] = script
 			}
