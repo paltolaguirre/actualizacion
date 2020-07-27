@@ -29,7 +29,7 @@ func (*AutomigrateTarea) BeforeAutomigrarPublic() error {
 	db := conexionBD.ObtenerDB("public")
 	defer conexionBD.CerrarDB(db)
 
-	err := db.AutoMigrate(&structTarea.Tareapendiente{}).Error
+	err := db.AutoMigrate(&structTarea.Tareapendiente{}, &structTarea.Estadotareaitem{}, &structTarea.Estadotarea{}).Error
 
 	return err
 }
@@ -42,7 +42,7 @@ func (*AutomigrateTarea) BeforeAutomigrarPrivate(tenant string) error {
 	db := conexionBD.ConnectBD(tenant)
 	defer conexionBD.CerrarDB(db)
 
-	err := db.AutoMigrate(&structTarea.Tarea{}, &structTarea.Tareaitem{}).Error
+	err := db.AutoMigrate(&structTarea.Tarea{}, &structTarea.Tareaitem{}, &structTarea.Cancelacion{}).Error
 	return err
 }
 
