@@ -27,6 +27,8 @@ type Automigrate interface {
 	GetNombre() string
 	GetVersionConfiguracion() int
 	GetVersionDB(db *gorm.DB) int
+	GetSecurity() structAutenticacion.Security
+	SetSecurity(security structAutenticacion.Security)
 }
 
 var automigratePublicArray = []Automigrate{&automigrateLegajo.AutomigrateLegajo{}, &automigrateFunction.AutomigrateFunction{}, &automigrateConcepto.AutomigrateConcepto{}, &automigrateNovedad.AutomigrateNovedad{}, &automigrateSiradig.AutomigrateSiradig{}, &automigrateLiquidacion.AutomigrateLiquidacion{}, &automigrateTarea.AutomigrateTarea{}}
@@ -129,12 +131,12 @@ func AutomigratePublico(microservicio Automigrate, db *gorm.DB, actualizo *bool)
 	return nil
 }
 
-func AutomigrateTablasPrivadas(db *gorm.DB, tenant string) error {
+func AutomigrateTablasPrivadas(db *gorm.DB, tenant string, security structAutenticacion.Security) error {
 
 	versiondbmicroservicio.CrearTablaVersionDBMicroservicio(db)
 
 	for _, microservicio := range automigratePrivateArray {
-
+		microservicio.SetSecurity(security)
 		err := AutomigratePrivado(microservicio, db, tenant)
 
 		if err != nil {

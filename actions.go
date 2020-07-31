@@ -3,11 +3,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+
 	"github.com/xubiosueldos/actualizacion/automigrate"
 	"github.com/xubiosueldos/conexionBD"
 	"github.com/xubiosueldos/conexionBD/Autenticacion/structAutenticacion"
 	"github.com/xubiosueldos/framework"
-	"net/http"
 )
 
 // Sirve para controlar si el server esta OK
@@ -30,7 +31,7 @@ func Actualizar(writer http.ResponseWriter, request *http.Request) {
 	db := conexionBD.ObtenerDB(tenant)
 	defer conexionBD.CerrarDB(db)
 
-	err= automigrate.AutomigrateTablasPrivadas(db, tenant)
+	err = automigrate.AutomigrateTablasPrivadas(db, tenant, security)
 
 	dbSecurity := conexionBD.ObtenerDB("security")
 	defer conexionBD.CerrarDB(dbSecurity)
