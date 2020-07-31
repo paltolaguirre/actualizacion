@@ -97,6 +97,8 @@ github.com/xubiosueldos/conexionBD v1.2.5 h1:stC2qqMz0/3ZwI5TaLpY6S+un0ZWnm+jX/P
 github.com/xubiosueldos/conexionBD v1.2.5/go.mod h1:CyQFrukeZ6Kn4udwJehPtc7BsG25kV4M/saT0agh4YM=
 github.com/xubiosueldos/conexionBD v1.2.7 h1:UpjKPo7FYeXsFUogOWhp2F1Tt0ySmDC6t4dqoFBpYQg=
 github.com/xubiosueldos/conexionBD v1.2.7/go.mod h1:CyQFrukeZ6Kn4udwJehPtc7BsG25kV4M/saT0agh4YM=
+github.com/xubiosueldos/conexionBD v1.2.8 h1:3++8rFVy/NYsK5wru9fE8HqvUlArthtsY+hM9G6hCaY=
+github.com/xubiosueldos/conexionBD v1.2.8/go.mod h1:CyQFrukeZ6Kn4udwJehPtc7BsG25kV4M/saT0agh4YM=
 github.com/xubiosueldos/framework v0.0.0-20190923130327-27a81bc804ce/go.mod h1:Atdymo+Iri+Mn8+VPhqIyb6dW/S/q3xPgobPRPBirzs=
 github.com/xubiosueldos/framework v1.1.0/go.mod h1:YpPF+hDR5I/7906gpS7Tjz+/wJX5KJCVyUDAWXeeOds=
 github.com/xubiosueldos/framework v1.1.2/go.mod h1:qMR+Nv+a9YDVXR50/CIZrjVT784I6v1NyCACLesWOXw=
