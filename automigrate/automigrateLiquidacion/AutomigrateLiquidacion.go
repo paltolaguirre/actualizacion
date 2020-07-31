@@ -43,7 +43,7 @@ func (am *AutomigrateLiquidacion) NecesitaActualizar(db *gorm.DB) bool {
 func (*AutomigrateLiquidacion) BeforeAutomigrarPublic() error {
 	db := conexionBD.ObtenerDB("public")
 	defer conexionBD.CerrarDB(db)
-	err := db.AutoMigrate(&structLiquidacion.Liquidacioncondicionpago{}, &structLiquidacion.Liquidaciontipo{}).Error
+	err := db.AutoMigrate(&structLiquidacion.Liquidacioncondicionpago{}, &structLiquidacion.Liquidaciontipo{}, &structLiquidacion.Zona{}).Error
 	return err
 }
 
