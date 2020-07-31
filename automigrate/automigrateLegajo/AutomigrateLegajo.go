@@ -4,17 +4,26 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/xubiosueldos/actualizacion/automigrate/versiondbmicroservicio"
 	"github.com/xubiosueldos/conexionBD"
+	"github.com/xubiosueldos/conexionBD/Autenticacion/structAutenticacion"
 	"github.com/xubiosueldos/conexionBD/Legajo/structLegajo"
 	"github.com/xubiosueldos/framework/configuracion"
 )
 
-type AutomigrateLegajo struct{
+type AutomigrateLegajo struct {
+	security structAutenticacion.Security
 }
 
 func (*AutomigrateLegajo) GetNombre() string {
 	return "legajo"
 }
 
+func (am *AutomigrateLegajo) GetSecurity() structAutenticacion.Security {
+	return am.security
+}
+
+func (am *AutomigrateLegajo) SetSecurity(security structAutenticacion.Security) {
+	am.security = security
+}
 func (*AutomigrateLegajo) GetVersionConfiguracion() int {
 	configuracion := configuracion.GetInstance()
 

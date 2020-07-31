@@ -4,15 +4,25 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/xubiosueldos/actualizacion/automigrate/versiondbmicroservicio"
 	"github.com/xubiosueldos/conexionBD"
+	"github.com/xubiosueldos/conexionBD/Autenticacion/structAutenticacion"
 	"github.com/xubiosueldos/conexionBD/Tarea/structTarea"
 	"github.com/xubiosueldos/framework/configuracion"
 )
 
-type AutomigrateTarea struct{
+type AutomigrateTarea struct {
+	security structAutenticacion.Security
 }
 
 func (*AutomigrateTarea) GetNombre() string {
 	return "tarea"
+}
+
+func (am *AutomigrateTarea) GetSecurity() structAutenticacion.Security {
+	return am.security
+}
+
+func (am *AutomigrateTarea) SetSecurity(security structAutenticacion.Security) {
+	am.security = security
 }
 
 func (*AutomigrateTarea) GetVersionConfiguracion() int {
