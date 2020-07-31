@@ -1,18 +1,33 @@
 package automigrateLiquidacion
 
 import (
+	"net/http"
+
+	"strconv"
+
 	"github.com/jinzhu/gorm"
 	"github.com/xubiosueldos/actualizacion/automigrate/versiondbmicroservicio"
 	"github.com/xubiosueldos/conexionBD"
+	"github.com/xubiosueldos/conexionBD/Autenticacion/structAutenticacion"
 	"github.com/xubiosueldos/conexionBD/Liquidacion/structLiquidacion"
 	"github.com/xubiosueldos/framework/configuracion"
+	"github.com/xubiosueldos/monoliticComunication"
 )
 
 type AutomigrateLiquidacion struct {
+	security structAutenticacion.Security
 }
 
 func (*AutomigrateLiquidacion) GetNombre() string {
 	return "liquidacion"
+}
+
+func (am *AutomigrateLiquidacion) GetSecurity() structAutenticacion.Security {
+	return am.security
+}
+
+func (am *AutomigrateLiquidacion) SetSecurity(security structAutenticacion.Security) {
+	am.security = security
 }
 
 func (*AutomigrateLiquidacion) GetVersionConfiguracion() int {
@@ -59,8 +74,20 @@ func (am *AutomigrateLiquidacion) BeforeAutomigrarPrivate(tenant string) error {
 	return err
 }
 
-func (*AutomigrateLiquidacion) AfterAutomigrarPrivate(db *gorm.DB) error {
-	return nil
+func (am *AutomigrateLiquidacion) AfterAutomigrarPrivate(db *gorm.DB) error {
+	var err error
+	versionLiquidacionDB := am.GetVersionDB(db)
+	if versionLiquidacionDB < 12 {
+		var w http.ResponseWriter
+		var r *http.Request
+		security := am.GetSecurity()
+		strempresa := monoliticComunication.Obtenerdatosempresa(w, r, &security, false)
+
+		zonaid := strempresa.Zonaid
+
+		db.Exec("UPDATE LIQUIDACION SET zonaid = " + strconv.Itoa(zonaid))
+	}
+	return err
 }
 
 func (am *AutomigrateLiquidacion) GetVersionDB(db *gorm.DB) int {
