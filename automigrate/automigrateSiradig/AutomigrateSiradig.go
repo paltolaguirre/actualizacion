@@ -4,16 +4,25 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/xubiosueldos/actualizacion/automigrate/versiondbmicroservicio"
 	"github.com/xubiosueldos/conexionBD"
+	"github.com/xubiosueldos/conexionBD/Autenticacion/structAutenticacion"
 	"github.com/xubiosueldos/conexionBD/Siradig/structSiradig"
 	"github.com/xubiosueldos/framework/configuracion"
 )
 
-
-type AutomigrateSiradig struct{
+type AutomigrateSiradig struct {
+	security structAutenticacion.Security
 }
 
 func (*AutomigrateSiradig) GetNombre() string {
 	return "siradig"
+}
+
+func (am *AutomigrateSiradig) GetSecurity() structAutenticacion.Security {
+	return am.security
+}
+
+func (am *AutomigrateSiradig) SetSecurity(security structAutenticacion.Security) {
+	am.security = security
 }
 
 func (*AutomigrateSiradig) GetVersionConfiguracion() int {

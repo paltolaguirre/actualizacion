@@ -4,15 +4,25 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/xubiosueldos/actualizacion/automigrate/versiondbmicroservicio"
 	"github.com/xubiosueldos/conexionBD"
+	"github.com/xubiosueldos/conexionBD/Autenticacion/structAutenticacion"
 	"github.com/xubiosueldos/conexionBD/Function/structFunction"
 	"github.com/xubiosueldos/framework/configuracion"
 )
 
-type AutomigrateFunction struct{
+type AutomigrateFunction struct {
+	security structAutenticacion.Security
 }
 
 func (*AutomigrateFunction) GetNombre() string {
 	return "formula"
+}
+
+func (am *AutomigrateFunction) GetSecurity() structAutenticacion.Security {
+	return am.security
+}
+
+func (am *AutomigrateFunction) SetSecurity(security structAutenticacion.Security) {
+	am.security = security
 }
 
 func (*AutomigrateFunction) GetVersionConfiguracion() int {
@@ -76,7 +86,7 @@ func (*AutomigrateFunction) AfterAutomigrarPrivate(db *gorm.DB) error {
 	return ObtenerFormulasPublicas(db)
 }
 
-func (am *AutomigrateFunction) ActualizarVersion(db *gorm.DB)  {
+func (am *AutomigrateFunction) ActualizarVersion(db *gorm.DB) {
 	versiondbmicroservicio.ActualizarVersionMicroservicioDB(am.GetVersionConfiguracion(), am.GetNombre(), db)
 }
 
